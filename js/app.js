@@ -21,8 +21,7 @@
 // set the positions of the characters on the board
 // set the current positon of each character to their start index
 // add the class of a character to the correct index
-// if it is the start of a new round set each open space to have a dot in it
-// filter the list of cells wich have the class open and add the class of dot to it
+// if it is the start of a new round set each correct open space to have a dot in it
 // add 1 to the number of dots
 
 //when start button is pressed
@@ -101,7 +100,8 @@ const rows = 19
 const columns = 15
 const numOfCells = rows * columns
 const cells = []
-const indxOfOpenCells = [16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 31, 33, 36, 38, 41, 41, 43, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 61, 63, 65, 69, 71, 73, 76, 78, 80, 81, 82, 83, 84, 86, 88, 91, 93, 97, 101, 103, 106, 107, 108, 110, 111, 112, 113, 114, 116, 117, 118, 123, 125, 129, 131, 135, 136, 137, 138, 139, 140, 144, 145, 146, 147, 148, 149, 153, 155, 156, 157, 158, 159, 161, 166, 167, 168, 169, 175, 176, 177, 178, 181, 184, 185, 186, 187, 188, 189, 190, 193, 196, 197, 199, 205, 207, 208, 212, 214, 215, 216, 218, 219, 220, 222, 226, 227, 228, 229, 231, 232, 233, 235, 236, 237, 238, 241, 247, 253, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268,]
+const indxOfOpenCells = [16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 31, 33, 36, 38, 41, 41, 43, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 61, 63, 65, 69, 71, 73, 76, 78, 80, 81, 82, 83, 84, 86, 88, 91, 93, 97, 101, 103, 106, 107, 108, 110, 111, 112, 113, 114, 116, 117, 118, 123, 125, 129, 131, 135, 136, 137, 138, 139, 140, 144, 145, 146, 147, 148, 149, 153, 155, 156, 157, 158, 159, 161, 166, 167, 168, 169, 175, 176, 177, 178, 181, 184, 185, 186, 187, 188, 189, 190, 193, 196, 197, 199, 205, 207, 208, 212, 214, 215, 216, 218, 219, 220, 222, 226, 227, 228, 229, 231, 232, 233, 235, 236, 237, 238, 241, 247, 253, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268]
+const excludePacdot = [110, 111, 112, 113, 114, 125, 129, 135, 136, 137, 139, 140, 144, 145, 147, 148, 149, 155, 156, 157, 158, 159, 187]
 const characters = {
     pacman: {
         startIndex: 187,
@@ -136,13 +136,21 @@ const blueGhost = characters.ghosts.blue
 const pinkGhost = characters.ghosts.pink
 const orangeGhost = characters.ghosts.orange
 const arrOfGhosts = [redGhost, blueGhost, pinkGhost, orangeGhost]
+const numOfDots = 120
 
 /*------------------------cached elements----------------------*/
 const scoreEl = document.querySelector('#score')
 const gameGridEl = document.querySelector('#game-grid')
 const livesSectionEl = document.querySelector('#lives')
+const startButton = document.querySelector('#start')
+const beginningSound = document.querySelector('#beginning')
+
+/*------------------------variables----------------------*/
+
+let newGame = true
 
 
+/*------------------------game setup----------------------*/
 
 for (let index = 0; index < numOfCells; index++) {
     cell = document.createElement('div')
@@ -157,14 +165,16 @@ for (let index = 0; index < numOfCells; index++) {
 
 }
 
-function removeCharaters(){
+/*------------------------functions----------------------*/
+
+function removeCharaters() {
     cells[pacman.startIndex].classList.remove('pacman')
     for (const ghost of arrOfGhosts) {
         cells[ghost.startIndex].classList.remove('ghost', ghost.name)
     }
 }
 
-function setCharactersToStart (){
+function setCharactersToStart() {
     removeCharaters()
     // adding the characters to the start
     cells[pacman.startIndex].classList.add('pacman')
@@ -174,5 +184,23 @@ function setCharactersToStart (){
 
 }
 
-setCharactersToStart()
+function startGame() {
+    setCharactersToStart()
+    if (newGame) {
+        newGame = false
 
+        // adding the pacdots to a cell if its a correct index and an open cell
+        for (const cell of cells) {
+            if (!excludePacdot.includes(cells.indexOf(cell)) && cell.classList.contains('open')) {
+                cell.classList.add('pacdot')
+            }
+        }
+        beginningSound.play()
+    }
+
+
+}
+
+/*------------------------event listeners----------------------*/
+
+startButton.addEventListener('click', startGame)

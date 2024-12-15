@@ -9,7 +9,7 @@ body{
 }
 
 section{
-    margin: 0 auto;
+    margin: auto;
     position: relative;
 }
 
@@ -34,8 +34,13 @@ section{
     background-color: black;
 }
 
+.pacdot{
+    background-image: url(../images/pacdot.png);
+}
+
 .pacman{
     background-color: rgb(255, 218, 10);
+    /* background-image: none; */
 }
 
 .red{
