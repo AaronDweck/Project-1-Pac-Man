@@ -33,3 +33,23 @@ section{
 .open{
     background-color: black;
 }
+
+.pacman{
+    background-color: rgb(255, 218, 10);
+}
+
+.red{
+    background-color: red;
+}
+
+.blue{
+    background-color: lightblue;
+}
+
+.pink{
+    background-color: pink;
+}
+
+.orange{
+    background-color: orange;
+}
