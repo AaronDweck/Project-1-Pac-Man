@@ -30,8 +30,8 @@
 
 // pacman's moves
 // create an interval with the timing of its speed corresponding to the game speed
-// using a parameter of the current direction and prefered direction
-// if the prefered direction is a legal place to move
+// using a parameter of the current direction and preferred direction
+// if the preferred direction is a legal place to move
 // move to that space and set the current direction
 // otherwise
 // if the current direction is a legal place to move
@@ -117,6 +117,7 @@ const characters = {
             currentIndex: 0,
             currentDirection: 'left',
             preferredDirection: 'left',
+            locked: true,
         },
         blue: {
             name: 'blue',
@@ -124,6 +125,8 @@ const characters = {
             currentIndex: 0,
             currentDirection: 'left',
             preferredDirection: 'left',
+            locked: true,
+
         },
         pink: {
             name: 'pink',
@@ -131,6 +134,8 @@ const characters = {
             currentIndex: 0,
             currentDirection: 'left',
             preferredDirection: 'left',
+            locked: true,
+
         },
         orange: {
             name: 'orange',
@@ -138,6 +143,8 @@ const characters = {
             currentIndex: 0,
             currentDirection: 'left',
             preferredDirection: 'left',
+            locked: true,
+
         },
     }
 }
@@ -166,7 +173,7 @@ let dotsCollected = 0
 let score = 0
 let pacmanInterval
 let ghostInterval
-let ghostSpeed = .9
+let ghostSpeed = 1.1
 
 
 /*------------------------game setup----------------------*/
@@ -174,6 +181,7 @@ let ghostSpeed = .9
 for (let index = 0; index < numOfCells; index++) {
     cell = document.createElement('div')
     cell.classList.add('cell')
+    // cell.innerHTML = index
     if (indxOfOpenCells.includes(index)) {
         cell.classList.add('open')
     } else {
@@ -225,63 +233,103 @@ function checkCellLegality(index) {
 }
 
 function moveCharacter(character, index) {
-    cells[character.currentIndex].classList.remove(character.name)
-    character.currentIndex = index
-    cells[character.currentIndex].classList.add(character.name)
-}
+    cells[character.currentIndex].classList.remove('ghost', character.name)
 
-function getNextIndex(character, direction){
-    if (character.currentIndex === 135 && direction === 'left') {
-        return 149
-    } else if (character.currentIndex === 149 && direction === 'right') {
-        return 135
-    } else if (direction === 'left') {
-        return character.currentIndex - 1
-    } else if (direction === 'right') {
-        return character.currentIndex + 1
-    } else if (direction === 'up') {
-        return character.currentIndex - columns
-    } else if (direction === 'down') {
-        return character.currentIndex + columns
+    character.currentIndex = index
+
+    if (arrOfGhosts.includes(character)){
+        cells[character.currentIndex].classList.add('ghost', character.name)
+    } else{
+        cells[character.currentIndex].classList.add(character.name)
     }
 }
 
-/*
+function getNextIndex(index, direction){
+    if (index === 135 && direction === 'left') {
+        return 149
+    } else if (index === 149 && direction === 'right') {
+        return 135
+    } else if (direction === 'left') {
+        return index - 1
+    } else if (direction === 'right') {
+        return index + 1
+    } else if (direction === 'up') {
+        return index - columns
+    } else if (direction === 'down') {
+        return index + columns
+    }
+}
+
+function getDirection(preferredIndex, currentIndex){
+    const calc = preferredIndex - currentIndex
+    if (calc === 1){
+        return 'right'
+    } else if (calc === -1){
+        return 'left'
+    } else if (calc === columns){
+        return 'down'
+    } else if (calc === -columns){
+        return 'up'
+    } else if (calc === 14){
+        return 'left'
+    } else if (calc === -14){
+        return 'right'
+    }
+}
+
+
 function ghostsMoves() {
     // the ghost's moves
     // create an interval with the timing of its speed corresponding to the game speed
     ghostInterval = setInterval(() => {
         arrOfGhosts.forEach(ghost => {
-            const laPosition = lookAhead(ghost, ghost.currentDirection)
-            const directions = ['up', 'down', 'left', 'right']
-            const allPositons = directions.map(direction => {})
+            if (ghost.locked){
 
+            } else {
 
-            
-            
+                // look ahead
+                // look at next space with current direction
+                const la = getNextIndex(ghost.currentIndex, ghost.currentDirection)
+                const directions = ['up', 'down', 'left', 'right']
+                // get legal spaces around it (its previous position is not legal)
+                const legalIndexs = directions.map(direction => {
+                    return getNextIndex(la, direction)
+                })
+                const filteredIndexes = legalIndexs.filter(index => {
+                    if (index === ghost.currentIndex){
+                        return false
+                    } else{
+                        return checkCellLegality(index)
+                    }
+                })
+                // ! mvp is just to make it move by its self which can be made by choosing first available spot
+                // if length of possible moves is equal to one
+                if (filteredIndexes.length === 1){
+                    // move to that position
+                    moveCharacter(ghost, la)
+                    ghost.currentDirection = getDirection(filteredIndexes[0], la)
+                } else{
+                    // otherwise
+                    // look at each available spot and calculate displacment to target cell
+                    // return the cell with the shortest displacment
+                    // move into space with current direction
+                    // set direction to move in the cell with shortest displacment
+                    const randomCell = filteredIndexes[Math.floor(Math.random() * filteredIndexes.length)]
+                    moveCharacter(ghost, la)
+                    ghost.currentDirection = getDirection(randomCell, la)
+                }
+            }
         });
-        // look ahead
-        // look at next space with current direction
-        // get legal spaces around it (its previous position is not legal)
-        // ! mvp is just to make it move by its self which can be made by choosing first available spot
-        // if length of possible moves is equal to one 
-        // move to that position
-        // otherwise
-        // look at each available spot and calculate displacment to target cell
-        // return the cell with the shortest displacment
-        // move into space with current direction
-        // set direction to move in the cell with shortest displacment
 
     }, gameSpeed * ghostSpeed)
 
 }
-*/
 
 
 function pacmansMoves() {
     pacmanInterval = setInterval(() => {
-        const nextPreferredCell = getNextIndex(pacman, pacman.preferredDirection)
-        const nextCell = getNextIndex(pacman, pacman.currentDirection)
+        const nextPreferredCell = getNextIndex(pacman.currentIndex, pacman.preferredDirection)
+        const nextCell = getNextIndex(pacman.currentIndex, pacman.currentDirection)
         if (checkCellLegality(nextPreferredCell)) {
             moveCharacter(pacman, nextPreferredCell)
             pacman.currentDirection = pacman.preferredDirection
@@ -289,7 +337,7 @@ function pacmansMoves() {
             if (checkCellLegality(nextCell)) {
                 moveCharacter(pacman, nextCell)
             } else {
-                console.log('stopped')
+                // console.log('stopped')
             }
         }
         checkCell(pacman)
@@ -328,9 +376,12 @@ function checkCell(character) {
             eatingSound.pause()
             eatingSound.currentTime = 0
             clearInterval(pacmanInterval)
+            clearInterval(ghostInterval)
             // start new round
             pacman.currentDirection = 'left'
             pacman.preferredDirection = 'left'
+            arrOfGhosts.forEach(ghost => ghost.locked = true)
+            addPacdots()
             startGame()
         }
     } else {
@@ -350,21 +401,35 @@ function checkCell(character) {
 
 }
 
+function unlockGhosts(){
+    for (let index = 0; index < arrOfGhosts.length; index++) {
+        const ghost = arrOfGhosts[index];
+        setTimeout(() => {
+            moveCharacter(ghost, 112)
+            ghost.locked = false
+        }, index * 2500)
+        
+    }
+}
+
 function startGame() {
     setCharactersToStart()
     if (newGame) {
         newGame = false
-        addPacdots()
+        // addPacdots()
         beginningSound.play()
         setTimeout(() => {
             pacmansMoves()
+            unlockGhosts()
+            ghostsMoves()
         }, 4500)
         startButton.disabled = true
 
     } else {
-        addPacdots()
         setTimeout(() => {
             pacmansMoves()
+            unlockGhosts()
+            ghostsMoves()
         }, 1500)
     }
 
