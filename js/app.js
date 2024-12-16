@@ -148,10 +148,14 @@ const gameGridEl = document.querySelector('#game-grid')
 const livesSectionEl = document.querySelector('#lives')
 const startButton = document.querySelector('#start')
 const beginningSound = document.querySelector('#beginning')
+const eatingSound = document.querySelector('#eating')
+
 
 /*------------------------variables----------------------*/
 
 let newGame = true
+let dotsCollected = 0
+let score = 0
 
 
 /*------------------------game setup----------------------*/
@@ -173,9 +177,9 @@ for (let index = 0; index < numOfCells; index++) {
 
 function removeCharaters() {
 
-    cells[pacman.startIndex].classList.remove('pacman')
+    cells[pacman.currentIndex].classList.remove('pacman')
     for (const ghost of arrOfGhosts) {
-        cells[ghost.startIndex].classList.remove('ghost', ghost.name)
+        cells[ghost.currentIndex].classList.remove('ghost', ghost.name)
     }
 }
 
@@ -201,6 +205,11 @@ function addPacdots() {
 }
 
 function checkCellLegality(position, direction) {
+    if (position === 135 && direction === 'left') {
+        return true
+    } else if (position === 149 && direction === 'right') {
+        return true
+    }
     if (direction === 'left') {
         return !cells[position - 1].classList.contains('wall')
     } else if (direction === 'right') {
@@ -215,8 +224,11 @@ function checkCellLegality(position, direction) {
 
 function moveCharacter(character, direction) {
     cells[character.currentIndex].classList.remove(character.name)
-
-    if (direction === 'left') {
+    if (character.currentIndex === 135 && direction === 'left') {
+        character.currentIndex = 149
+    } else if (character.currentIndex === 149 && direction === 'right') {
+        character.currentIndex = 135
+    } else if (direction === 'left') {
         character.currentIndex--
     } else if (direction === 'right') {
         character.currentIndex++
@@ -234,7 +246,7 @@ function moveCharacter(character, direction) {
 }
 
 function pacmansMoves() {
-    setInterval(() => {
+    pacmanInterval = setInterval(() => {
         if (checkCellLegality(pacman.currentIndex, pacman.preferredDirection)) {
             moveCharacter(pacman, pacman.preferredDirection)
             pacman.currentDirection = pacman.preferredDirection
@@ -245,6 +257,7 @@ function pacmansMoves() {
                 console.log('stopped')
             }
         }
+        checkCell(pacman)
 
     }, gameSpeed)
 }
@@ -262,16 +275,46 @@ function pacmanDirecton(event) {
     }
 }
 
+// check pacmans cell
+function checkCell(character){
+    // if cell has a dot in it
+    if (cells[character.currentIndex].classList.contains('pacdot')){
+        // play eating sound
+        eatingSound.play()
+        // clear the dot and add 10 points to the score and 1 to collected dots
+        cells[character.currentIndex].classList.remove('pacdot')
+        score += 10
+        dotsCollected += 1
+        // if collected dots are equal to the number of dots
+        if (dotsCollected === numOfDots){
+            console.log('new round')
+            console.log('score:',score)
+        }
+        // start new round
+
+    }
+    // if cell has ghost in it
+    // if afraid mode is on
+    // set that objects class to return and set its target to home
+    // otherwise
+    // play dying sound
+    // minus one from the life
+    // if lives are equal to zero
+    // end game and display score
+    // reset positions
+    // start game 
+
+}
+
 function startGame() {
     setCharactersToStart()
     if (newGame) {
         newGame = false
         addPacdots()
-        // beginningSound.play()
-        // setTimeout(() => {
-        //     pacmansMoves()
-        // }, 4500)
-        pacmansMoves()
+        beginningSound.play()
+        setTimeout(() => {
+            pacmansMoves()
+        }, 4500)
 
     }
 
