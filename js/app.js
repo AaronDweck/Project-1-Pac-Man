@@ -140,7 +140,7 @@ const pinkGhost = characters.ghosts.pink
 const orangeGhost = characters.ghosts.orange
 const arrOfGhosts = [redGhost, blueGhost, pinkGhost, orangeGhost]
 const numOfDots = 120
-const gameSpeed = 500
+const gameSpeed = 300
 
 /*------------------------cached elements----------------------*/
 const scoreEl = document.querySelector('#score')
@@ -156,6 +156,7 @@ const eatingSound = document.querySelector('#eating')
 let newGame = true
 let dotsCollected = 0
 let score = 0
+let pacmanInterval
 
 
 /*------------------------game setup----------------------*/
@@ -172,6 +173,9 @@ for (let index = 0; index < numOfCells; index++) {
     gameGridEl.appendChild(cell)
 
 }
+
+beginningSound.volume = 0.5
+eatingSound.volume = 0.35
 
 /*------------------------functions----------------------*/
 
@@ -202,6 +206,7 @@ function addPacdots() {
             cell.classList.add('pacdot')
         }
     }
+    dotsCollected = 0
 }
 
 function checkCellLegality(position, direction) {
@@ -280,18 +285,29 @@ function checkCell(character){
     // if cell has a dot in it
     if (cells[character.currentIndex].classList.contains('pacdot')){
         // play eating sound
-        eatingSound.play()
+        if (eatingSound.paused){
+            eatingSound.play()
+        }
         // clear the dot and add 10 points to the score and 1 to collected dots
         cells[character.currentIndex].classList.remove('pacdot')
         score += 10
         dotsCollected += 1
+        scoreEl.innerHTML = score
         // if collected dots are equal to the number of dots
         if (dotsCollected === numOfDots){
+            eatingSound.pause()
+            eatingSound.currentTime = 0
+            clearInterval(pacmanInterval)
             console.log('new round')
             console.log('score:',score)
+            pacman.currentDirection = 'left'
+            pacman.preferredDirection = 'left'
+            startGame()
+            // start new round
         }
-        // start new round
-
+    } else{
+        eatingSound.pause()
+        eatingSound.currentTime = 0
     }
     // if cell has ghost in it
     // if afraid mode is on
@@ -315,8 +331,15 @@ function startGame() {
         setTimeout(() => {
             pacmansMoves()
         }, 4500)
+        startButton.disabled = true
 
+    } else{
+        addPacdots()
+        setTimeout(() => {
+            pacmansMoves()
+        }, 1000)
     }
+
 
 
 }
