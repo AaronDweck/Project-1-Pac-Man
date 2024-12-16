@@ -115,21 +115,29 @@ const characters = {
             name: 'red',
             startIndex: 127,
             currentIndex: 0,
+            currentDirection: 'left',
+            preferredDirection: 'left',
         },
         blue: {
             name: 'blue',
             startIndex: 141,
             currentIndex: 0,
+            currentDirection: 'left',
+            preferredDirection: 'left',
         },
         pink: {
             name: 'pink',
             startIndex: 142,
             currentIndex: 0,
+            currentDirection: 'left',
+            preferredDirection: 'left',
         },
         orange: {
             name: 'orange',
             startIndex: 143,
             currentIndex: 0,
+            currentDirection: 'left',
+            preferredDirection: 'left',
         },
     }
 }
@@ -157,6 +165,8 @@ let newGame = true
 let dotsCollected = 0
 let score = 0
 let pacmanInterval
+let ghostInterval
+let ghostSpeed = .9
 
 
 /*------------------------game setup----------------------*/
@@ -209,55 +219,75 @@ function addPacdots() {
     dotsCollected = 0
 }
 
-function checkCellLegality(position, direction) {
-    if (position === 135 && direction === 'left') {
-        return true
-    } else if (position === 149 && direction === 'right') {
-        return true
-    }
-    if (direction === 'left') {
-        return !cells[position - 1].classList.contains('wall')
-    } else if (direction === 'right') {
-        return !cells[position + 1].classList.contains('wall')
-    } else if (direction === 'up') {
-        return !cells[position - columns].classList.contains('wall')
-    } else if (direction === 'down') {
-        return !cells[position + columns].classList.contains('wall')
-    }
+function checkCellLegality(index) {
+    return !cells[index].classList.contains('wall')
 
 }
 
-function moveCharacter(character, direction) {
+function moveCharacter(character, index) {
     cells[character.currentIndex].classList.remove(character.name)
-    if (character.currentIndex === 135 && direction === 'left') {
-        character.currentIndex = 149
-    } else if (character.currentIndex === 149 && direction === 'right') {
-        character.currentIndex = 135
-    } else if (direction === 'left') {
-        character.currentIndex--
-    } else if (direction === 'right') {
-        character.currentIndex++
-    } else if (direction === 'up') {
-        character.currentIndex -= columns
-    } else if (direction === 'down') {
-        character.currentIndex += columns
-    }
-
+    character.currentIndex = index
     cells[character.currentIndex].classList.add(character.name)
+}
+
+function getNextIndex(character, direction){
+    if (character.currentIndex === 135 && direction === 'left') {
+        return 149
+    } else if (character.currentIndex === 149 && direction === 'right') {
+        return 135
+    } else if (direction === 'left') {
+        return character.currentIndex - 1
+    } else if (direction === 'right') {
+        return character.currentIndex + 1
+    } else if (direction === 'up') {
+        return character.currentIndex - columns
+    } else if (direction === 'down') {
+        return character.currentIndex + columns
+    }
+}
+
+/*
+function ghostsMoves() {
+    // the ghost's moves
+    // create an interval with the timing of its speed corresponding to the game speed
+    ghostInterval = setInterval(() => {
+        arrOfGhosts.forEach(ghost => {
+            const laPosition = lookAhead(ghost, ghost.currentDirection)
+            const directions = ['up', 'down', 'left', 'right']
+            const allPositons = directions.map(direction => {})
 
 
+            
+            
+        });
+        // look ahead
+        // look at next space with current direction
+        // get legal spaces around it (its previous position is not legal)
+        // ! mvp is just to make it move by its self which can be made by choosing first available spot
+        // if length of possible moves is equal to one 
+        // move to that position
+        // otherwise
+        // look at each available spot and calculate displacment to target cell
+        // return the cell with the shortest displacment
+        // move into space with current direction
+        // set direction to move in the cell with shortest displacment
 
+    }, gameSpeed * ghostSpeed)
 
 }
+*/
+
 
 function pacmansMoves() {
     pacmanInterval = setInterval(() => {
-        if (checkCellLegality(pacman.currentIndex, pacman.preferredDirection)) {
-            moveCharacter(pacman, pacman.preferredDirection)
+        const nextPreferredCell = getNextIndex(pacman, pacman.preferredDirection)
+        const nextCell = getNextIndex(pacman, pacman.currentDirection)
+        if (checkCellLegality(nextPreferredCell)) {
+            moveCharacter(pacman, nextPreferredCell)
             pacman.currentDirection = pacman.preferredDirection
         } else {
-            if (checkCellLegality(pacman.currentIndex, pacman.currentDirection)) {
-                moveCharacter(pacman, pacman.currentDirection)
+            if (checkCellLegality(nextCell)) {
+                moveCharacter(pacman, nextCell)
             } else {
                 console.log('stopped')
             }
@@ -281,11 +311,11 @@ function pacmanDirecton(event) {
 }
 
 // check pacmans cell
-function checkCell(character){
+function checkCell(character) {
     // if cell has a dot in it
-    if (cells[character.currentIndex].classList.contains('pacdot')){
+    if (cells[character.currentIndex].classList.contains('pacdot')) {
         // play eating sound
-        if (eatingSound.paused){
+        if (eatingSound.paused) {
             eatingSound.play()
         }
         // clear the dot and add 10 points to the score and 1 to collected dots
@@ -294,18 +324,16 @@ function checkCell(character){
         dotsCollected += 1
         scoreEl.innerHTML = score
         // if collected dots are equal to the number of dots
-        if (dotsCollected === numOfDots){
+        if (dotsCollected === numOfDots) {
             eatingSound.pause()
             eatingSound.currentTime = 0
             clearInterval(pacmanInterval)
-            console.log('new round')
-            console.log('score:',score)
+            // start new round
             pacman.currentDirection = 'left'
             pacman.preferredDirection = 'left'
             startGame()
-            // start new round
         }
-    } else{
+    } else {
         eatingSound.pause()
         eatingSound.currentTime = 0
     }
@@ -333,11 +361,11 @@ function startGame() {
         }, 4500)
         startButton.disabled = true
 
-    } else{
+    } else {
         addPacdots()
         setTimeout(() => {
             pacmansMoves()
-        }, 1000)
+        }, 1500)
     }
 
 
