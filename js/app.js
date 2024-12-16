@@ -104,8 +104,11 @@ const indxOfOpenCells = [16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 31, 33,
 const excludePacdot = [110, 111, 112, 113, 114, 125, 129, 135, 136, 137, 139, 140, 144, 145, 147, 148, 149, 155, 156, 157, 158, 159, 187]
 const characters = {
     pacman: {
+        name: 'pacman',
         startIndex: 187,
         currentIndex: 0,
+        currentDirection: 'left',
+        preferredDirection: 'left',
     },
     ghosts: {
         red: {
@@ -137,6 +140,7 @@ const pinkGhost = characters.ghosts.pink
 const orangeGhost = characters.ghosts.orange
 const arrOfGhosts = [redGhost, blueGhost, pinkGhost, orangeGhost]
 const numOfDots = 120
+const gameSpeed = 500
 
 /*------------------------cached elements----------------------*/
 const scoreEl = document.querySelector('#score')
@@ -168,6 +172,7 @@ for (let index = 0; index < numOfCells; index++) {
 /*------------------------functions----------------------*/
 
 function removeCharaters() {
+
     cells[pacman.startIndex].classList.remove('pacman')
     for (const ghost of arrOfGhosts) {
         cells[ghost.startIndex].classList.remove('ghost', ghost.name)
@@ -178,24 +183,96 @@ function setCharactersToStart() {
     removeCharaters()
     // adding the characters to the start
     cells[pacman.startIndex].classList.add('pacman')
+    pacman.currentIndex = pacman.startIndex
     for (const ghost of arrOfGhosts) {
         cells[ghost.startIndex].classList.add('ghost', ghost.name)
+        ghost.currentIndex = ghost.startIndex
     }
 
+}
+
+function addPacdots() {
+    // adding the pacdots to a cell if its a correct index and an open cell
+    for (const cell of cells) {
+        if (!excludePacdot.includes(cells.indexOf(cell)) && cell.classList.contains('open')) {
+            cell.classList.add('pacdot')
+        }
+    }
+}
+
+function checkCellLegality(position, direction) {
+    if (direction === 'left') {
+        return !cells[position - 1].classList.contains('wall')
+    } else if (direction === 'right') {
+        return !cells[position + 1].classList.contains('wall')
+    } else if (direction === 'up') {
+        return !cells[position - columns].classList.contains('wall')
+    } else if (direction === 'down') {
+        return !cells[position + columns].classList.contains('wall')
+    }
+
+}
+
+function moveCharacter(character, direction) {
+    cells[character.currentIndex].classList.remove(character.name)
+
+    if (direction === 'left') {
+        character.currentIndex--
+    } else if (direction === 'right') {
+        character.currentIndex++
+    } else if (direction === 'up') {
+        character.currentIndex -= columns
+    } else if (direction === 'down') {
+        character.currentIndex += columns
+    }
+
+    cells[character.currentIndex].classList.add(character.name)
+
+
+
+
+}
+
+function pacmansMoves() {
+    setInterval(() => {
+        if (checkCellLegality(pacman.currentIndex, pacman.preferredDirection)) {
+            moveCharacter(pacman, pacman.preferredDirection)
+            pacman.currentDirection = pacman.preferredDirection
+        } else {
+            if (checkCellLegality(pacman.currentIndex, pacman.currentDirection)) {
+                moveCharacter(pacman, pacman.currentDirection)
+            } else {
+                console.log('stopped')
+            }
+        }
+
+    }, gameSpeed)
+}
+
+function pacmanDirecton(event) {
+    const pressedKey = event.code
+    if (pressedKey === 'ArrowUp') {
+        pacman.preferredDirection = 'up'
+    } else if (pressedKey === 'ArrowDown') {
+        pacman.preferredDirection = 'down'
+    } else if (pressedKey === 'ArrowLeft') {
+        pacman.preferredDirection = 'left'
+    } else if (pressedKey === 'ArrowRight') {
+        pacman.preferredDirection = 'right'
+    }
 }
 
 function startGame() {
     setCharactersToStart()
     if (newGame) {
         newGame = false
+        addPacdots()
+        // beginningSound.play()
+        // setTimeout(() => {
+        //     pacmansMoves()
+        // }, 4500)
+        pacmansMoves()
 
-        // adding the pacdots to a cell if its a correct index and an open cell
-        for (const cell of cells) {
-            if (!excludePacdot.includes(cells.indexOf(cell)) && cell.classList.contains('open')) {
-                cell.classList.add('pacdot')
-            }
-        }
-        beginningSound.play()
     }
 
 
@@ -204,3 +281,5 @@ function startGame() {
 /*------------------------event listeners----------------------*/
 
 startButton.addEventListener('click', startGame)
+
+document.addEventListener('keydown', pacmanDirecton)

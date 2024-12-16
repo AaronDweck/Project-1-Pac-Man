@@ -21,8 +21,8 @@ section{
 }
 
 .cell{
-    width: 6.67%;
-    height: calc(round(5.263%)) ;
+    width: 30px;
+    height: 30px;
     color: white;
 }
 
@@ -39,8 +39,10 @@ section{
 }
 
 .pacman{
-    background-color: rgb(255, 218, 10);
-    /* background-image: none; */
+    /* background-color: rgb(255, 218, 10); */
+    background-image: url(../images/pacman\ eating.gif);
+    background-position: center;
+    background-size: cover;
 }
 
 .red{
