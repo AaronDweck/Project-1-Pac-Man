@@ -177,6 +177,7 @@ let pacmanInterval
 let ghostInterval
 let ghostSpeed = 1.1
 let lives = 3
+let frightened = false
 
 
 /*------------------------game setup----------------------*/
@@ -377,10 +378,9 @@ function resetCharacters(){
 }
 
 function checkGhostColision(character){
-    const charClassList = cells[character.currentIndex].classList
-    if (charClassList.contains('ghost') && charClassList.contains('pacman')) {
+    const cellClassList = cells[character.currentIndex].classList
+    if (cellClassList.contains('ghost') && cellClassList.contains('pacman')) {
         console.log(character.name)
-
         // if afraid mode is on
         // set that objects class to return and set its target to home
         // otherwise
@@ -418,14 +418,15 @@ function checkGhostColision(character){
 
 // check pacmans cell
 function checkCell(character) {
+    const cellClassList = cells[character.currentIndex].classList
     // if cell has a dot in it
-    if (cells[character.currentIndex].classList.contains('pacdot')) {
+    if (cellClassList.contains('pacdot')) {
         // play eating sound
         if (eatingSound.paused) {
             eatingSound.play()
         }
         // clear the dot and add 10 points to the score and 1 to collected dots
-        cells[character.currentIndex].classList.remove('pacdot')
+        cellClassList.remove('pacdot')
         score += 10
         dotsCollected += 1
         scoreEl.innerHTML = score
@@ -439,6 +440,10 @@ function checkCell(character) {
             addPacdots()
             startGame()
         }
+    } else if (cellClassList.contains('power-pellet')){
+        cellClassList.remove('power-pellet')
+
+
     } else {
         eatingSound.pause()
         eatingSound.currentTime = 0
@@ -490,3 +495,7 @@ function startGame() {
 startButton.addEventListener('click', startGame)
 
 document.addEventListener('keydown', pacmanDirecton)
+
+console.log(document.styleSheets[0].cssRules.item(11).style[0])
+document.styleSheets[0].cssRules.item(11).style[0] = 'url(../images/blueghost.gif)'
+console.log(document.styleSheets[0].cssRules.item(11).style[0])
