@@ -38,33 +38,52 @@ section{
     background-image: url(../images/pacdot.png);
 }
 
+.power-pellet{
+    background-image: url(../images/powerpellet.png);
+    animation: blink .5s infinite;
+}
+
+@keyframes blink{
+    1%{
+        background-image: none;
+    }
+}
+
 .pacman{
-    /* background-color: rgb(255, 218, 10); */
     background-image: url(../images/pacman\ eating.webp);
     background-position: center;
     background-size: cover;
+    animation: none;
 }
 
 .red{
     background-image: url(../images/redghost.gif);
     background-position: center;
     background-size:cover;
+    animation: none;
+
 }
 
 .blue{
     background-image: url(../images/blueghost.gif);
     background-position: center;
     background-size:cover;
+    animation: none;
+
 }
 
 .pink{
     background-image: url(../images/pinkghost1.gif);
     background-position: center;
     background-size:cover;
+    animation: none;
+
 }
 
 .orange{
     background-image: url(../images/orangeghost.gif);
     background-position: center;
     background-size:cover;
+    animation: none;
+
 }

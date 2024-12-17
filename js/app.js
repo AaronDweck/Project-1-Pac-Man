@@ -101,7 +101,8 @@ const columns = 15
 const numOfCells = rows * columns
 const cells = []
 const indxOfOpenCells = [16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 31, 33, 36, 38, 41, 41, 43, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 61, 63, 65, 69, 71, 73, 76, 78, 80, 81, 82, 83, 84, 86, 88, 91, 93, 97, 101, 103, 106, 107, 108, 110, 111, 112, 113, 114, 116, 117, 118, 123, 125, 129, 131, 135, 136, 137, 138, 139, 140, 144, 145, 146, 147, 148, 149, 153, 155, 156, 157, 158, 159, 161, 166, 167, 168, 169, 175, 176, 177, 178, 181, 184, 185, 186, 187, 188, 189, 190, 193, 196, 197, 199, 205, 207, 208, 212, 214, 215, 216, 218, 219, 220, 222, 226, 227, 228, 229, 231, 232, 233, 235, 236, 237, 238, 241, 247, 253, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268]
-const excludePacdot = [110, 111, 112, 113, 114, 125, 129, 135, 136, 137, 139, 140, 144, 145, 147, 148, 149, 155, 156, 157, 158, 159, 187]
+const excludePacdot = [31, 43, 110, 111, 112, 113, 114, 125, 129, 135, 136, 137, 139, 140, 144, 145, 147, 148, 149, 155, 156, 157, 158, 159, 187, 196, 208]
+const indexOfPowerPellets = [31, 43, 196, 208]
 const characters = {
     pacman: {
         name: 'pacman',
@@ -154,7 +155,6 @@ const blueGhost = characters.ghosts.blue
 const pinkGhost = characters.ghosts.pink
 const orangeGhost = characters.ghosts.orange
 const arrOfGhosts = [redGhost, blueGhost, pinkGhost, orangeGhost]
-const numOfDots = 120
 const gameSpeed = 300
 
 /*------------------------cached elements----------------------*/
@@ -170,6 +170,7 @@ const dyingSound = document.querySelector('#dying')
 /*------------------------variables----------------------*/
 
 let newGame = true
+let numOfDots = 0
 let dotsCollected = 0
 let score = 0
 let pacmanInterval
@@ -226,6 +227,9 @@ function addPacdots() {
     for (const cell of cells) {
         if (!excludePacdot.includes(cells.indexOf(cell)) && cell.classList.contains('open')) {
             cell.classList.add('pacdot')
+            numOfDots += 1
+        } else if (indexOfPowerPellets.includes(cells.indexOf(cell))){
+            cell.classList.add('power-pellet')
         }
     }
     dotsCollected = 0
@@ -362,6 +366,16 @@ function pacmanDirecton(event) {
     }
 }
 
+function resetCharacters(){
+    setCharactersToStart()
+    pacman.currentDirection = 'left'
+    pacman.preferredDirection = 'left'
+    arrOfGhosts.forEach(ghost => {
+        ghost.locked = true
+        ghost.currentDirection = 'up'
+    })
+}
+
 function checkGhostColision(character){
     const charClassList = cells[character.currentIndex].classList
     if (charClassList.contains('ghost') && charClassList.contains('pacman')) {
@@ -381,18 +395,18 @@ function checkGhostColision(character){
         console.log(lives)
         if (lives === 0) {
             console.log('game ended')
+            console.log('score:',score)
+            score = 0
+            scoreEl.innerHTML = score
+            lives = 3
+            newGame = true
+            startButton.disabled = false
             // end game and display score
             // reset positions
             // start game 
         } else{
 
             setTimeout(() => {
-                pacman.currentDirection = 'left'
-                pacman.preferredDirection = 'left'
-                arrOfGhosts.forEach(ghost => {
-                    ghost.locked = true
-                    ghost.currentDirection = 'up'
-                })
                 startGame()
     
             }, 1500)
@@ -422,11 +436,6 @@ function checkCell(character) {
             // start new round
             clearInterval(pacmanInterval)
             clearInterval(ghostInterval)
-            pacman.currentDirection = 'left'
-            arrOfGhosts.forEach(ghost => {
-                ghost.locked = true
-                ghost.currentDirection = 'up'
-            })
             addPacdots()
             startGame()
         }
@@ -452,7 +461,7 @@ function unlockGhosts() {
 }
 
 function startGame() {
-    setCharactersToStart()
+    resetCharacters()
     if (newGame) {
         newGame = false
         addPacdots()
