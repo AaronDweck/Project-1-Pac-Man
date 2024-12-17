@@ -119,6 +119,7 @@ const characters = {
             currentDirection: 'left',
             preferredDirection: 'left',
             locked: true,
+            frightened: false,
         },
         blue: {
             name: 'blue',
@@ -127,6 +128,7 @@ const characters = {
             currentDirection: 'left',
             preferredDirection: 'left',
             locked: true,
+            frightened: false,
 
         },
         pink: {
@@ -136,6 +138,7 @@ const characters = {
             currentDirection: 'left',
             preferredDirection: 'left',
             locked: true,
+            frightened: false,
 
         },
         orange: {
@@ -145,6 +148,7 @@ const characters = {
             currentDirection: 'left',
             preferredDirection: 'left',
             locked: true,
+            frightened: false,
 
         },
     }
@@ -156,6 +160,8 @@ const pinkGhost = characters.ghosts.pink
 const orangeGhost = characters.ghosts.orange
 const arrOfGhosts = [redGhost, blueGhost, pinkGhost, orangeGhost]
 const gameSpeed = 300
+const ghostclasses = ['ghost']
+const ghostRestartIndex = 112
 
 /*------------------------cached elements----------------------*/
 const scoreEl = document.querySelector('#score')
@@ -177,7 +183,8 @@ let pacmanInterval
 let ghostInterval
 let ghostSpeed = 1.1
 let lives = 3
-let frightened = false
+let ghostMultiplier = 1
+
 
 
 /*------------------------game setup----------------------*/
@@ -207,7 +214,7 @@ function removeCharaters() {
 
     cells[pacman.currentIndex].classList.remove('pacman')
     for (const ghost of arrOfGhosts) {
-        cells[ghost.currentIndex].classList.remove('ghost', ghost.name)
+        cells[ghost.currentIndex].classList.remove('ghost', 'frightened', ghost.name)
     }
 }
 
@@ -229,7 +236,7 @@ function addPacdots() {
         if (!excludePacdot.includes(cells.indexOf(cell)) && cell.classList.contains('open')) {
             cell.classList.add('pacdot')
             numOfDots += 1
-        } else if (indexOfPowerPellets.includes(cells.indexOf(cell))){
+        } else if (indexOfPowerPellets.includes(cells.indexOf(cell))) {
             cell.classList.add('power-pellet')
         }
     }
@@ -242,16 +249,32 @@ function checkCellLegality(index) {
 }
 
 function moveCharacter(character, index) {
-    cells[character.currentIndex].classList.remove('ghost', character.name)
+    cells[character.currentIndex].classList.remove('ghost', 'frightened', character.name)
 
     character.currentIndex = index
 
     if (arrOfGhosts.includes(character)) {
-        cells[character.currentIndex].classList.add('ghost', character.name)
+        cells[character.currentIndex].classList.add(...ghostclasses, character.name)
     } else {
         cells[character.currentIndex].classList.add(character.name)
     }
 }
+// function moveCharacter(character, index) {
+//     const cellClassList = cells[character.currentIndex].classList
+//     cellClassList.remove('ghost', 'frightened', character.name)
+
+//     character.currentIndex = index
+
+//     if (arrOfGhosts.includes(character)) {
+//         if (character.frightened) {
+//             cellClassList.add('ghost', 'frightened', character.name)
+//         } else {
+//             cellClassList.add('ghost', character.name)
+//         }
+//     } else {
+//         cellClassList.add(character.name)
+//     }
+// }
 
 function getNextIndex(index, direction) {
     if (index === 135 && direction === 'left') {
@@ -294,8 +317,6 @@ function ghostsMoves() {
             if (ghost.locked) {
 
             } else {
-
-                // look ahead
                 // look at next space with current direction
                 const la = getNextIndex(ghost.currentIndex, ghost.currentDirection)
                 const directions = ['up', 'down', 'left', 'right']
@@ -364,10 +385,12 @@ function pacmanDirecton(event) {
         pacman.preferredDirection = 'left'
     } else if (pressedKey === 'ArrowRight') {
         pacman.preferredDirection = 'right'
+    } else if (pressedKey === 's') {
+        gameSpeed = 5000
     }
 }
 
-function resetCharacters(){
+function resetCharacters() {
     setCharactersToStart()
     pacman.currentDirection = 'left'
     pacman.preferredDirection = 'left'
@@ -377,42 +400,53 @@ function resetCharacters(){
     })
 }
 
-function checkGhostColision(character){
+function checkGhostColision(character) {
     const cellClassList = cells[character.currentIndex].classList
     if (cellClassList.contains('ghost') && cellClassList.contains('pacman')) {
         console.log(character.name)
-        // if afraid mode is on
-        // set that objects class to return and set its target to home
-        // otherwise
-        clearInterval(pacmanInterval)
-        clearInterval(ghostInterval)
-        eatingSound.pause()
-        eatingSound.currentTime = 0
-        // play dying sound
-        dyingSound.play()
-        // minus one from the life
-        lives--
-        console.log(lives)
-        if (lives === 0) {
-            console.log('game ended')
-            console.log('score:',score)
-            score = 0
-            scoreEl.innerHTML = score
-            lives = 3
-            newGame = true
-            startButton.disabled = false
-            // end game and display score
-            // reset positions
-            // start game 
-        } else{
-
-            setTimeout(() => {
-                startGame()
-    
-            }, 1500)
-        }
-        // if lives are equal to zero
+        // check if ghost is frightened if afraid mode is on
+        arrOfGhosts.forEach(ghost => {
+            if (cellClassList.contains(ghost.name)){
+                console.log(ghost.name)
+                if (ghost.frightened){
+                    ghost.frightened = false
+                    ghost.currentDirection = 'up'
+                    score += 200 * ghostMultiplier
+                    ghostMultiplier += 1
+                    scoreEl.innerHTML = score
+                    moveCharacter(ghost, 112)
+                } else{
+                    // otherwise
+                    clearInterval(pacmanInterval)
+                    clearInterval(ghostInterval)
+                    eatingSound.pause()
+                    eatingSound.currentTime = 0
+                    // play dying sound
+                    dyingSound.play()
+                    // minus one from the life
+                    lives--
+                    console.log(lives)
+                    // if lives are equal to zero
+                    if (lives === 0) {
+                        // end game and display score
+                        console.log('game ended')
+                        console.log('score:', score)
+                        score = 0
+                        scoreEl.innerHTML = score
+                        lives = 3
+                        newGame = true
+                        startButton.disabled = false
+                    } else {
+                        setTimeout(() => {
+                            startGame()
+            
+                        }, 1500)
+                    }
+                }
+            }
+        })
         
+
     }
 }
 
@@ -440,8 +474,16 @@ function checkCell(character) {
             addPacdots()
             startGame()
         }
-    } else if (cellClassList.contains('power-pellet')){
+    } else if (cellClassList.contains('power-pellet')) {
         cellClassList.remove('power-pellet')
+        arrOfGhosts.forEach(ghost => ghost.frightened = true)
+        ghostclasses.push('frightened')
+        setTimeout(() => {
+            arrOfGhosts.forEach(ghost => ghost.frightened = false)
+            ghostclasses.pop()
+            ghostMultiplier = 1
+        }, 8000)
+
 
 
     } else {
@@ -450,7 +492,7 @@ function checkCell(character) {
     }
     // if cell has ghost in it
     checkGhostColision(character)
-    
+
 
 }
 
@@ -496,6 +538,6 @@ startButton.addEventListener('click', startGame)
 
 document.addEventListener('keydown', pacmanDirecton)
 
-console.log(document.styleSheets[0].cssRules.item(11).style[0])
-document.styleSheets[0].cssRules.item(11).style[0] = 'url(../images/blueghost.gif)'
-console.log(document.styleSheets[0].cssRules.item(11).style[0])
+// console.log(document.styleSheets[0].cssRules.item(11).style.backgroundImage)
+// document.styleSheets[0].cssRules.item(11).style.backgroundImage = 'url(../images/blueghost.gif)'
+// console.log(document.styleSheets[0].cssRules.item(11).style.backgroundImage)
