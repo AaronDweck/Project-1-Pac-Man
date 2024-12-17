@@ -164,6 +164,7 @@ const livesSectionEl = document.querySelector('#lives')
 const startButton = document.querySelector('#start')
 const beginningSound = document.querySelector('#beginning')
 const eatingSound = document.querySelector('#eating')
+const dyingSound = document.querySelector('#dying')
 
 
 /*------------------------variables----------------------*/
@@ -174,6 +175,7 @@ let score = 0
 let pacmanInterval
 let ghostInterval
 let ghostSpeed = 1.1
+let lives = 3
 
 
 /*------------------------game setup----------------------*/
@@ -194,6 +196,8 @@ for (let index = 0; index < numOfCells; index++) {
 
 beginningSound.volume = 0.5
 eatingSound.volume = 0.35
+dyingSound.volume = 0.5
+
 
 /*------------------------functions----------------------*/
 
@@ -237,14 +241,14 @@ function moveCharacter(character, index) {
 
     character.currentIndex = index
 
-    if (arrOfGhosts.includes(character)){
+    if (arrOfGhosts.includes(character)) {
         cells[character.currentIndex].classList.add('ghost', character.name)
-    } else{
+    } else {
         cells[character.currentIndex].classList.add(character.name)
     }
 }
 
-function getNextIndex(index, direction){
+function getNextIndex(index, direction) {
     if (index === 135 && direction === 'left') {
         return 149
     } else if (index === 149 && direction === 'right') {
@@ -260,30 +264,29 @@ function getNextIndex(index, direction){
     }
 }
 
-function getDirection(preferredIndex, currentIndex){
+function getDirection(preferredIndex, currentIndex) {
     const calc = preferredIndex - currentIndex
-    if (calc === 1){
+    if (calc === 1) {
         return 'right'
-    } else if (calc === -1){
+    } else if (calc === -1) {
         return 'left'
-    } else if (calc === columns){
+    } else if (calc === columns) {
         return 'down'
-    } else if (calc === -columns){
+    } else if (calc === -columns) {
         return 'up'
-    } else if (calc === 14){
+    } else if (calc === 14) {
         return 'left'
-    } else if (calc === -14){
+    } else if (calc === -14) {
         return 'right'
     }
 }
-
 
 function ghostsMoves() {
     // the ghost's moves
     // create an interval with the timing of its speed corresponding to the game speed
     ghostInterval = setInterval(() => {
         arrOfGhosts.forEach(ghost => {
-            if (ghost.locked){
+            if (ghost.locked) {
 
             } else {
 
@@ -296,19 +299,19 @@ function ghostsMoves() {
                     return getNextIndex(la, direction)
                 })
                 const filteredIndexes = legalIndexs.filter(index => {
-                    if (index === ghost.currentIndex){
+                    if (index === ghost.currentIndex) {
                         return false
-                    } else{
+                    } else {
                         return checkCellLegality(index)
                     }
                 })
                 // ! mvp is just to make it move by its self which can be made by choosing first available spot
                 // if length of possible moves is equal to one
-                if (filteredIndexes.length === 1){
+                if (filteredIndexes.length === 1) {
                     // move to that position
                     moveCharacter(ghost, la)
                     ghost.currentDirection = getDirection(filteredIndexes[0], la)
-                } else{
+                } else {
                     // otherwise
                     // look at each available spot and calculate displacment to target cell
                     // return the cell with the shortest displacment
@@ -324,7 +327,6 @@ function ghostsMoves() {
     }, gameSpeed * ghostSpeed)
 
 }
-
 
 function pacmansMoves() {
     pacmanInterval = setInterval(() => {
@@ -375,12 +377,14 @@ function checkCell(character) {
         if (dotsCollected === numOfDots) {
             eatingSound.pause()
             eatingSound.currentTime = 0
+            // start new round
             clearInterval(pacmanInterval)
             clearInterval(ghostInterval)
-            // start new round
             pacman.currentDirection = 'left'
-            pacman.preferredDirection = 'left'
-            arrOfGhosts.forEach(ghost => ghost.locked = true)
+            arrOfGhosts.forEach(ghost => {
+                ghost.locked = true
+                ghost.currentDirection = 'up'
+            })
             addPacdots()
             startGame()
         }
@@ -389,26 +393,52 @@ function checkCell(character) {
         eatingSound.currentTime = 0
     }
     // if cell has ghost in it
-    // if afraid mode is on
-    // set that objects class to return and set its target to home
-    // otherwise
-    // play dying sound
-    // minus one from the life
-    // if lives are equal to zero
-    // end game and display score
-    // reset positions
-    // start game 
+    if (cells[character.currentIndex].classList.contains('ghost')) {
+
+        // if afraid mode is on
+        // set that objects class to return and set its target to home
+        // otherwise
+        clearInterval(pacmanInterval)
+        clearInterval(ghostInterval)
+        eatingSound.pause()
+        eatingSound.currentTime = 0
+        // play dying sound
+        dyingSound.play()
+        // minus one from the life
+        lives--
+        console.log(lives)
+        if (lives === 0) {
+            console.log('game ended')
+            // end game and display score
+            // reset positions
+            // start game 
+        } else{
+
+            setTimeout(() => {
+                pacman.currentDirection = 'left'
+                pacman.preferredDirection = 'left'
+                arrOfGhosts.forEach(ghost => {
+                    ghost.locked = true
+                    ghost.currentDirection = 'up'
+                })
+                startGame()
+    
+            }, 1500)
+        }
+        // if lives are equal to zero
+        
+    }
 
 }
 
-function unlockGhosts(){
+function unlockGhosts() {
     for (let index = 0; index < arrOfGhosts.length; index++) {
         const ghost = arrOfGhosts[index];
         setTimeout(() => {
             moveCharacter(ghost, 112)
             ghost.locked = false
         }, index * 2500)
-        
+
     }
 }
 
@@ -416,7 +446,7 @@ function startGame() {
     setCharactersToStart()
     if (newGame) {
         newGame = false
-        // addPacdots()
+        addPacdots()
         beginningSound.play()
         setTimeout(() => {
             pacmansMoves()

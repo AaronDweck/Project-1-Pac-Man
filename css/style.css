@@ -40,23 +40,31 @@ section{
 
 .pacman{
     /* background-color: rgb(255, 218, 10); */
-    background-image: url(../images/pacman\ eating.gif);
+    background-image: url(../images/pacman\ eating.webp);
     background-position: center;
     background-size: cover;
 }
 
 .red{
-    background-color: red;
+    background-image: url(../images/redghost.gif);
+    background-position: center;
+    background-size:cover;
 }
 
 .blue{
-    background-color: lightblue;
+    background-image: url(../images/blueghost.gif);
+    background-position: center;
+    background-size:cover;
 }
 
 .pink{
-    background-color: pink;
+    background-image: url(../images/pinkghost1.gif);
+    background-position: center;
+    background-size:cover;
 }
 
 .orange{
-    background-color: orange;
+    background-image: url(../images/orangeghost.gif);
+    background-position: center;
+    background-size:cover;
 }
