@@ -57,7 +57,7 @@ section{
 }
 
 .red{
-    background-image: url(../images/redghost.gif);
+    background-image: url(../images/redleft.gif);
     background-position: center;
     background-size:cover;
     animation: none;
@@ -73,7 +73,7 @@ section{
 }
 
 .pink{
-    background-image: url(../images/pinkghost1.gif);
+    background-image: url(../images/pinkghost.gif);
     background-position: center;
     background-size:cover;
     animation: none;
@@ -86,4 +86,11 @@ section{
     background-size:cover;
     animation: none;
 
+}
+
+.frightened{
+    background-image: url(../images/frightenedghost.gif);
+    background-position: center;
+    background-size:cover;
+    animation: none;
 }
