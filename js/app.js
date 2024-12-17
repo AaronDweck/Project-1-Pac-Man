@@ -311,6 +311,7 @@ function ghostsMoves() {
                     // move to that position
                     moveCharacter(ghost, la)
                     ghost.currentDirection = getDirection(filteredIndexes[0], la)
+                    checkGhostColision(ghost)
                 } else {
                     // otherwise
                     // look at each available spot and calculate displacment to target cell
@@ -320,6 +321,7 @@ function ghostsMoves() {
                     const randomCell = filteredIndexes[Math.floor(Math.random() * filteredIndexes.length)]
                     moveCharacter(ghost, la)
                     ghost.currentDirection = getDirection(randomCell, la)
+                    checkGhostColision(ghost)
                 }
             }
         });
@@ -360,40 +362,10 @@ function pacmanDirecton(event) {
     }
 }
 
-// check pacmans cell
-function checkCell(character) {
-    // if cell has a dot in it
-    if (cells[character.currentIndex].classList.contains('pacdot')) {
-        // play eating sound
-        if (eatingSound.paused) {
-            eatingSound.play()
-        }
-        // clear the dot and add 10 points to the score and 1 to collected dots
-        cells[character.currentIndex].classList.remove('pacdot')
-        score += 10
-        dotsCollected += 1
-        scoreEl.innerHTML = score
-        // if collected dots are equal to the number of dots
-        if (dotsCollected === numOfDots) {
-            eatingSound.pause()
-            eatingSound.currentTime = 0
-            // start new round
-            clearInterval(pacmanInterval)
-            clearInterval(ghostInterval)
-            pacman.currentDirection = 'left'
-            arrOfGhosts.forEach(ghost => {
-                ghost.locked = true
-                ghost.currentDirection = 'up'
-            })
-            addPacdots()
-            startGame()
-        }
-    } else {
-        eatingSound.pause()
-        eatingSound.currentTime = 0
-    }
-    // if cell has ghost in it
-    if (cells[character.currentIndex].classList.contains('ghost')) {
+function checkGhostColision(character){
+    const charClassList = cells[character.currentIndex].classList
+    if (charClassList.contains('ghost') && charClassList.contains('pacman')) {
+        console.log(character.name)
 
         // if afraid mode is on
         // set that objects class to return and set its target to home
@@ -428,6 +400,43 @@ function checkCell(character) {
         // if lives are equal to zero
         
     }
+}
+
+// check pacmans cell
+function checkCell(character) {
+    // if cell has a dot in it
+    if (cells[character.currentIndex].classList.contains('pacdot')) {
+        // play eating sound
+        if (eatingSound.paused) {
+            eatingSound.play()
+        }
+        // clear the dot and add 10 points to the score and 1 to collected dots
+        cells[character.currentIndex].classList.remove('pacdot')
+        score += 10
+        dotsCollected += 1
+        scoreEl.innerHTML = score
+        // if collected dots are equal to the number of dots
+        if (dotsCollected === numOfDots) {
+            eatingSound.pause()
+            eatingSound.currentTime = 0
+            // start new round
+            clearInterval(pacmanInterval)
+            clearInterval(ghostInterval)
+            pacman.currentDirection = 'left'
+            arrOfGhosts.forEach(ghost => {
+                ghost.locked = true
+                ghost.currentDirection = 'up'
+            })
+            addPacdots()
+            startGame()
+        }
+    } else {
+        eatingSound.pause()
+        eatingSound.currentTime = 0
+    }
+    // if cell has ghost in it
+    checkGhostColision(character)
+    
 
 }
 
