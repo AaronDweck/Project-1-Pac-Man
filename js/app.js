@@ -167,6 +167,7 @@ const orangeGhost = characters.ghosts.orange
 const arrOfGhosts = [redGhost, blueGhost, pinkGhost, orangeGhost]
 const ghostRestartIndex = 112
 const gameSpeed = 300
+const livesArr = []
 
 /*------------------------cached elements----------------------*/
 
@@ -198,7 +199,7 @@ let frightenedTime
 highScoreEL.innerHTML = highScore
 
 for (let index = 0; index < numOfCells; index++) {
-    cell = document.createElement('div')
+    const cell = document.createElement('div')
     cell.classList.add('cell')
     // cell.innerHTML = index
     if (indxOfOpenCells.includes(index)) {
@@ -215,8 +216,13 @@ beginningSound.volume = 0.5
 eatingSound.volume = 0.35
 dyingSound.volume = 0.5
 
-
 /*------------------------functions----------------------*/
+function addLife() {
+    const life = document.createElement('div')
+    life.className = 'life'
+    livesArr.push(life)
+    livesSectionEl.appendChild(life)
+}
 
 function addPacdots() {
     numOfDots = 0
@@ -395,6 +401,14 @@ function handleHighScore() {
 
 }
 
+function removeFrightenedMode() {
+    console.log('frightened mode over')
+    arrOfGhosts.forEach(ghost => ghost.frightened = false)
+    ghostSpeed = 1.1
+    clearInterval(ghostInterval)
+    ghostMultiplier = 1
+}
+
 function checkGhostColision(character) {
     const cellClassList = cells[character.currentIndex].classList
     if (cellClassList.contains('ghost') && cellClassList.contains('pacman')) {
@@ -414,8 +428,9 @@ function checkGhostColision(character) {
                     // otherwise
                     clearInterval(pacmanInterval)
                     clearInterval(ghostInterval)
+                    clearTimeout(frightenedTime)
+                    removeFrightenedMode()
                     arrOfGhosts.forEach(ghost => {
-                        ghost.frightened = false
                         clearTimeout(ghost.lockedTime)
                     })
                     eatingSound.pause()
@@ -424,6 +439,8 @@ function checkGhostColision(character) {
                     dyingSound.play()
                     // minus one from the life
                     lives--
+                    livesSectionEl.removeChild(livesArr[livesArr.length - 1])
+                    livesArr.pop()
                     console.log(lives)
                     // if lives are equal to zero
                     if (lives === 0) {
@@ -448,7 +465,6 @@ function checkGhostColision(character) {
     }
 }
 
-// check pacmans cell
 function checkCell(character) {
     const cellClassList = cells[character.currentIndex].classList
     // if cell has a dot in it
@@ -469,6 +485,8 @@ function checkCell(character) {
             // start new round
             clearInterval(pacmanInterval)
             clearInterval(ghostInterval)
+            clearTimeout(frightenedTime)
+            removeFrightenedMode()
             addPacdots()
             startGame()
         }
@@ -480,12 +498,8 @@ function checkCell(character) {
         ghostsMoves()
         clearTimeout(frightenedTime)
         frightenedTime = setTimeout(() => {
-            console.log('frightened mode over')
-            arrOfGhosts.forEach(ghost => ghost.frightened = false)
-            ghostSpeed = 1.1
-            clearInterval(ghostInterval)
+            removeFrightenedMode()
             ghostsMoves()
-            ghostMultiplier = 1
         }, 8000)
 
 
@@ -514,6 +528,9 @@ function unlockGhosts() {
 function startGame() {
     resetCharacters()
     if (newGame) {
+        for (let index = 0; index < lives; index++) {
+            addLife()
+        }
         scoreEl.innerHTML = '00'
         newGame = false
         addPacdots()
