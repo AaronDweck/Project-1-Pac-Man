@@ -153,17 +153,19 @@ const characters = {
         },
     }
 }
+
 const pacman = characters.pacman
 const redGhost = characters.ghosts.red
 const blueGhost = characters.ghosts.blue
 const pinkGhost = characters.ghosts.pink
 const orangeGhost = characters.ghosts.orange
 const arrOfGhosts = [redGhost, blueGhost, pinkGhost, orangeGhost]
-const gameSpeed = 300
-const ghostclasses = ['ghost']
+// const ghostclasses = ['ghost']
 const ghostRestartIndex = 112
+const gameSpeed = 300
 
 /*------------------------cached elements----------------------*/
+
 const scoreEl = document.querySelector('#score')
 const gameGridEl = document.querySelector('#game-grid')
 const livesSectionEl = document.querySelector('#lives')
@@ -171,7 +173,6 @@ const startButton = document.querySelector('#start')
 const beginningSound = document.querySelector('#beginning')
 const eatingSound = document.querySelector('#eating')
 const dyingSound = document.querySelector('#dying')
-
 
 /*------------------------variables----------------------*/
 
@@ -210,27 +211,8 @@ dyingSound.volume = 0.5
 
 /*------------------------functions----------------------*/
 
-function removeCharaters() {
-
-    cells[pacman.currentIndex].classList.remove('pacman')
-    for (const ghost of arrOfGhosts) {
-        cells[ghost.currentIndex].classList.remove('ghost', 'frightened', ghost.name)
-    }
-}
-
-function setCharactersToStart() {
-    removeCharaters()
-    // adding the characters to the start
-    cells[pacman.startIndex].classList.add('pacman')
-    pacman.currentIndex = pacman.startIndex
-    for (const ghost of arrOfGhosts) {
-        cells[ghost.startIndex].classList.add('ghost', ghost.name)
-        ghost.currentIndex = ghost.startIndex
-    }
-
-}
-
 function addPacdots() {
+    numOfDots = 0
     // adding the pacdots to a cell if its a correct index and an open cell
     for (const cell of cells) {
         if (!excludePacdot.includes(cells.indexOf(cell)) && cell.classList.contains('open')) {
@@ -254,27 +236,15 @@ function moveCharacter(character, index) {
     character.currentIndex = index
 
     if (arrOfGhosts.includes(character)) {
-        cells[character.currentIndex].classList.add(...ghostclasses, character.name)
+        if (character.frightened) {
+            cells[character.currentIndex].classList.add('ghost', 'frightened', character.name)
+        } else {
+            cells[character.currentIndex].classList.add('ghost', character.name)
+        }
     } else {
         cells[character.currentIndex].classList.add(character.name)
     }
 }
-// function moveCharacter(character, index) {
-//     const cellClassList = cells[character.currentIndex].classList
-//     cellClassList.remove('ghost', 'frightened', character.name)
-
-//     character.currentIndex = index
-
-//     if (arrOfGhosts.includes(character)) {
-//         if (character.frightened) {
-//             cellClassList.add('ghost', 'frightened', character.name)
-//         } else {
-//             cellClassList.add('ghost', character.name)
-//         }
-//     } else {
-//         cellClassList.add(character.name)
-//     }
-// }
 
 function getNextIndex(index, direction) {
     if (index === 135 && direction === 'left') {
@@ -391,10 +361,11 @@ function pacmanDirecton(event) {
 }
 
 function resetCharacters() {
-    setCharactersToStart()
+    moveCharacter(pacman, pacman.startIndex)
     pacman.currentDirection = 'left'
     pacman.preferredDirection = 'left'
     arrOfGhosts.forEach(ghost => {
+        moveCharacter(ghost, ghost.startIndex)
         ghost.locked = true
         ghost.currentDirection = 'up'
     })
@@ -406,16 +377,16 @@ function checkGhostColision(character) {
         console.log(character.name)
         // check if ghost is frightened if afraid mode is on
         arrOfGhosts.forEach(ghost => {
-            if (cellClassList.contains(ghost.name)){
+            if (cellClassList.contains(ghost.name)) {
                 console.log(ghost.name)
-                if (ghost.frightened){
+                if (ghost.frightened) {
                     ghost.frightened = false
                     ghost.currentDirection = 'up'
                     score += 200 * ghostMultiplier
                     ghostMultiplier += 1
                     scoreEl.innerHTML = score
                     moveCharacter(ghost, 112)
-                } else{
+                } else {
                     // otherwise
                     clearInterval(pacmanInterval)
                     clearInterval(ghostInterval)
@@ -439,13 +410,13 @@ function checkGhostColision(character) {
                     } else {
                         setTimeout(() => {
                             startGame()
-            
+
                         }, 1500)
                     }
                 }
             }
         })
-        
+
 
     }
 }
@@ -477,10 +448,10 @@ function checkCell(character) {
     } else if (cellClassList.contains('power-pellet')) {
         cellClassList.remove('power-pellet')
         arrOfGhosts.forEach(ghost => ghost.frightened = true)
-        ghostclasses.push('frightened')
+        // ghostclasses.push('frightened')
         setTimeout(() => {
             arrOfGhosts.forEach(ghost => ghost.frightened = false)
-            ghostclasses.pop()
+            // ghostclasses.pop()
             ghostMultiplier = 1
         }, 8000)
 
