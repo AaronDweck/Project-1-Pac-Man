@@ -182,7 +182,7 @@ const highScoreEL = document.querySelector('#high-score')
 
 /*------------------------variables----------------------*/
 
-let highScore = localStorage.getItem("P1Pacman")
+let highScore = localStorage.getItem("p1pacmanHS")
 let newGame = true
 let numOfDots = 0
 let dotsCollected = 0
@@ -217,6 +217,7 @@ eatingSound.volume = 0.35
 dyingSound.volume = 0.5
 
 /*------------------------functions----------------------*/
+
 function addLife() {
     const life = document.createElement('div')
     life.className = 'life'
@@ -348,7 +349,7 @@ function ghostsMoves() {
 }
 
 function rotatePacman(direction) {
-    const pacmanStyle = document.styleSheets[0].cssRules.item(15).style
+    const pacmanStyle = document.styleSheets[0].cssRules.item(16).style
     if (direction === 'left') {
         pacmanStyle.transform = 'rotate(180deg)'
     } else if (direction === 'right') {
@@ -371,8 +372,6 @@ function pacmansMoves() {
         } else {
             if (checkCellLegality(nextCell)) {
                 moveCharacter(pacman, nextCell)
-            } else {
-                // console.log('stopped')
             }
         }
         checkCell(pacman)
@@ -407,8 +406,8 @@ function resetCharacters() {
 
 function handleHighScore() {
     if (score > highScore) {
-        localStorage.setItem('P1Pacman', score)
-        highScore = localStorage.getItem('P1Pacman')
+        localStorage.setItem('p1pacmanHS', score)
+        highScore = localStorage.getItem('p1pacmanHS')
     }
     highScoreEL.innerHTML = highScore
 
@@ -422,17 +421,28 @@ function removeFrightenedMode() {
     ghostMultiplier = 1
 }
 
+function resetGame() {
+    eatingSound.pause()
+    eatingSound.currentTime = 0
+    clearInterval(pacmanInterval)
+    clearInterval(ghostInterval)
+    clearTimeout(frightenedTime)
+    removeFrightenedMode()
+    arrOfGhosts.forEach(ghost => {
+        clearTimeout(ghost.lockedTime)
+    })
+}
+
 function checkGhostColision(character) {
     const cellClassList = cells[character.currentIndex].classList
     if (cellClassList.contains('ghost') && cellClassList.contains('pacman')) {
-        console.log(character.name)
         // check if ghost is frightened if afraid mode is on
         arrOfGhosts.forEach(ghost => {
             if (cellClassList.contains(ghost.name)) {
-                console.log(ghost.name)
                 if (ghost.frightened) {
                     ghost.frightened = false
                     ghost.currentDirection = 'up'
+                    console.log(ghostMultiplier)
                     score += 200 * ghostMultiplier
                     ghostMultiplier += 1
                     scoreEl.innerHTML = score
@@ -440,23 +450,13 @@ function checkGhostColision(character) {
                 } else {
                     // otherwise
                     rotatePacman('right')
-
-                    clearInterval(pacmanInterval)
-                    clearInterval(ghostInterval)
-                    clearTimeout(frightenedTime)
-                    removeFrightenedMode()
-                    arrOfGhosts.forEach(ghost => {
-                        clearTimeout(ghost.lockedTime)
-                    })
-                    eatingSound.pause()
-                    eatingSound.currentTime = 0
+                    resetGame()
                     // play dying sound
                     dyingSound.play()
                     // minus one from the life
                     lives--
                     livesSectionEl.removeChild(livesArr[livesArr.length - 1])
                     livesArr.pop()
-                    console.log(lives)
                     // if lives are equal to zero
                     if (lives === 0) {
                         // end game and display score
@@ -465,7 +465,7 @@ function checkGhostColision(character) {
                         score = 0
                         lives = 3
                         newGame = true
-                        startButton.disabled = false
+                        startButton.classList.remove('hide')
                     } else {
                         setTimeout(() => {
                             startGame()
@@ -495,13 +495,8 @@ function checkCell(character) {
         scoreEl.innerHTML = score
         // if collected dots are equal to the number of dots
         if (dotsCollected === numOfDots) {
-            eatingSound.pause()
-            eatingSound.currentTime = 0
             // start new round
-            clearInterval(pacmanInterval)
-            clearInterval(ghostInterval)
-            clearTimeout(frightenedTime)
-            removeFrightenedMode()
+            resetGame()
             addPacdots()
             startGame()
         }
@@ -541,6 +536,7 @@ function unlockGhosts() {
 }
 
 function startGame() {
+    startButton.classList.add('hide')
     resetCharacters()
     if (newGame) {
         for (let index = 0; index < lives; index++) {
@@ -555,7 +551,6 @@ function startGame() {
             unlockGhosts()
             ghostsMoves()
         }, 4500)
-        startButton.disabled = true
 
     } else {
         setTimeout(() => {
@@ -572,9 +567,4 @@ function startGame() {
 /*------------------------event listeners----------------------*/
 
 startButton.addEventListener('click', startGame)
-
 document.addEventListener('keydown', pacmanDirecton)
-
-console.log(document.styleSheets[0].cssRules.item(15).style.transform)
-console.log(document.styleSheets[0].cssRules.item(15).style.transform)
-console.log(document.styleSheets[0].cssRules)

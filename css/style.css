@@ -3,17 +3,18 @@
 }
 
 body{
+    width: 100dvw;
+    height: 100vh;
     background-color: rgb(255, 218, 10);
     margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 section{
     margin: 0 auto;
     position: relative;
-}
-
-#game{
-    margin: auto;
 }
 
 #score-board{
@@ -49,6 +50,15 @@ section{
     width: 450px;
     height: 100px;
     padding-left: 10px;
+}
+
+#start{
+    position: fixed;
+    height: 40px;
+}
+
+.hide{
+    display: none;
 }
 
 .life{
