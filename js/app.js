@@ -245,7 +245,7 @@ function checkCellLegality(index) {
 
 function moveCharacter(character, index) {
     const ghostsInCell = arrOfGhosts.filter(ghost => {
-        return cells[character.currentIndex].classList.contains(ghost.name)
+        return (cells[character.currentIndex].classList.contains(ghost.name) && ghost.frightened)
     })
 
     if (ghostsInCell.length > 1) {
@@ -347,11 +347,25 @@ function ghostsMoves() {
 
 }
 
+function rotatePacman(direction) {
+    const pacmanStyle = document.styleSheets[0].cssRules.item(15).style
+    if (direction === 'left') {
+        pacmanStyle.transform = 'rotate(180deg)'
+    } else if (direction === 'right') {
+        pacmanStyle.transform = 'none'
+    } else if (direction === 'up') {
+        pacmanStyle.transform = 'rotate(-90deg)'
+    } else if (direction === 'down') {
+        pacmanStyle.transform = 'rotate(90deg)'
+    }
+}
+
 function pacmansMoves() {
     pacmanInterval = setInterval(() => {
         const nextPreferredCell = getNextIndex(pacman.currentIndex, pacman.preferredDirection)
         const nextCell = getNextIndex(pacman.currentIndex, pacman.currentDirection)
         if (checkCellLegality(nextPreferredCell)) {
+            rotatePacman(pacman.preferredDirection)
             moveCharacter(pacman, nextPreferredCell)
             pacman.currentDirection = pacman.preferredDirection
         } else {
@@ -376,8 +390,6 @@ function pacmanDirecton(event) {
         pacman.preferredDirection = 'left'
     } else if (pressedKey === 'ArrowRight') {
         pacman.preferredDirection = 'right'
-    } else if (pressedKey === 's') {
-        gameSpeed = 5000
     }
 }
 
@@ -385,6 +397,7 @@ function resetCharacters() {
     moveCharacter(pacman, pacman.startIndex)
     pacman.currentDirection = 'left'
     pacman.preferredDirection = 'left'
+    rotatePacman(pacman.currentDirection)
     arrOfGhosts.forEach(ghost => {
         moveCharacter(ghost, ghost.startIndex)
         ghost.locked = true
@@ -426,6 +439,8 @@ function checkGhostColision(character) {
                     moveCharacter(ghost, 112)
                 } else {
                     // otherwise
+                    rotatePacman('right')
+
                     clearInterval(pacmanInterval)
                     clearInterval(ghostInterval)
                     clearTimeout(frightenedTime)
@@ -560,7 +575,6 @@ startButton.addEventListener('click', startGame)
 
 document.addEventListener('keydown', pacmanDirecton)
 
-// console.log(document.styleSheets[0].cssRules.item(11).style.backgroundImage)
-// document.styleSheets[0].cssRules.item(11).style.backgroundImage = 'url(../images/blueghost.gif)'
-// console.log(document.styleSheets[0].cssRules.item(11).style.backgroundImage)
-
+console.log(document.styleSheets[0].cssRules.item(15).style.transform)
+console.log(document.styleSheets[0].cssRules.item(15).style.transform)
+console.log(document.styleSheets[0].cssRules)
