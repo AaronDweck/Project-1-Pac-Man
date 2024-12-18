@@ -119,7 +119,9 @@ const characters = {
             currentDirection: 'left',
             preferredDirection: 'left',
             locked: true,
+            lockedTime: null,
             frightened: false,
+
         },
         blue: {
             name: 'blue',
@@ -128,6 +130,7 @@ const characters = {
             currentDirection: 'left',
             preferredDirection: 'left',
             locked: true,
+            lockedTime: null,
             frightened: false,
 
         },
@@ -138,6 +141,7 @@ const characters = {
             currentDirection: 'left',
             preferredDirection: 'left',
             locked: true,
+            lockedTime: null,
             frightened: false,
 
         },
@@ -148,6 +152,7 @@ const characters = {
             currentDirection: 'left',
             preferredDirection: 'left',
             locked: true,
+            lockedTime: null,
             frightened: false,
 
         },
@@ -160,7 +165,6 @@ const blueGhost = characters.ghosts.blue
 const pinkGhost = characters.ghosts.pink
 const orangeGhost = characters.ghosts.orange
 const arrOfGhosts = [redGhost, blueGhost, pinkGhost, orangeGhost]
-// const ghostclasses = ['ghost']
 const ghostRestartIndex = 112
 const gameSpeed = 300
 
@@ -173,9 +177,11 @@ const startButton = document.querySelector('#start')
 const beginningSound = document.querySelector('#beginning')
 const eatingSound = document.querySelector('#eating')
 const dyingSound = document.querySelector('#dying')
+const highScoreEL = document.querySelector('#high-score')
 
 /*------------------------variables----------------------*/
 
+let highScore = localStorage.getItem("P1Pacman")
 let newGame = true
 let numOfDots = 0
 let dotsCollected = 0
@@ -185,10 +191,11 @@ let ghostInterval
 let ghostSpeed = 1.1
 let lives = 3
 let ghostMultiplier = 1
-
-
+let frightenedTime
 
 /*------------------------game setup----------------------*/
+
+highScoreEL.innerHTML = highScore
 
 for (let index = 0; index < numOfCells; index++) {
     cell = document.createElement('div')
@@ -231,7 +238,15 @@ function checkCellLegality(index) {
 }
 
 function moveCharacter(character, index) {
-    cells[character.currentIndex].classList.remove('ghost', 'frightened', character.name)
+    const ghostsInCell = arrOfGhosts.filter(ghost => {
+        return cells[character.currentIndex].classList.contains(ghost.name)
+    })
+
+    if (ghostsInCell.length > 1) {
+        cells[character.currentIndex].classList.remove('ghost', character.name)
+    } else {
+        cells[character.currentIndex].classList.remove('ghost', 'frightened', character.name)
+    }
 
     character.currentIndex = index
 
@@ -371,6 +386,15 @@ function resetCharacters() {
     })
 }
 
+function handleHighScore() {
+    if (score > highScore) {
+        localStorage.setItem('P1Pacman', score)
+        highScore = localStorage.getItem('P1Pacman')
+    }
+    highScoreEL.innerHTML = highScore
+
+}
+
 function checkGhostColision(character) {
     const cellClassList = cells[character.currentIndex].classList
     if (cellClassList.contains('ghost') && cellClassList.contains('pacman')) {
@@ -390,6 +414,10 @@ function checkGhostColision(character) {
                     // otherwise
                     clearInterval(pacmanInterval)
                     clearInterval(ghostInterval)
+                    arrOfGhosts.forEach(ghost => {
+                        ghost.frightened = false
+                        clearTimeout(ghost.lockedTime)
+                    })
                     eatingSound.pause()
                     eatingSound.currentTime = 0
                     // play dying sound
@@ -401,9 +429,8 @@ function checkGhostColision(character) {
                     if (lives === 0) {
                         // end game and display score
                         console.log('game ended')
-                        console.log('score:', score)
+                        handleHighScore()
                         score = 0
-                        scoreEl.innerHTML = score
                         lives = 3
                         newGame = true
                         startButton.disabled = false
@@ -448,10 +475,16 @@ function checkCell(character) {
     } else if (cellClassList.contains('power-pellet')) {
         cellClassList.remove('power-pellet')
         arrOfGhosts.forEach(ghost => ghost.frightened = true)
-        // ghostclasses.push('frightened')
-        setTimeout(() => {
+        ghostSpeed = 1.6
+        clearInterval(ghostInterval)
+        ghostsMoves()
+        clearTimeout(frightenedTime)
+        frightenedTime = setTimeout(() => {
+            console.log('frightened mode over')
             arrOfGhosts.forEach(ghost => ghost.frightened = false)
-            // ghostclasses.pop()
+            ghostSpeed = 1.1
+            clearInterval(ghostInterval)
+            ghostsMoves()
             ghostMultiplier = 1
         }, 8000)
 
@@ -470,7 +503,7 @@ function checkCell(character) {
 function unlockGhosts() {
     for (let index = 0; index < arrOfGhosts.length; index++) {
         const ghost = arrOfGhosts[index];
-        setTimeout(() => {
+        ghost.lockedTime = setTimeout(() => {
             moveCharacter(ghost, 112)
             ghost.locked = false
         }, index * 2500)
@@ -481,6 +514,7 @@ function unlockGhosts() {
 function startGame() {
     resetCharacters()
     if (newGame) {
+        scoreEl.innerHTML = '00'
         newGame = false
         addPacdots()
         beginningSound.play()
@@ -512,3 +546,4 @@ document.addEventListener('keydown', pacmanDirecton)
 // console.log(document.styleSheets[0].cssRules.item(11).style.backgroundImage)
 // document.styleSheets[0].cssRules.item(11).style.backgroundImage = 'url(../images/blueghost.gif)'
 // console.log(document.styleSheets[0].cssRules.item(11).style.backgroundImage)
+
