@@ -305,10 +305,10 @@ function ghostsMoves() {
                 const la = getNextIndex(ghost.currentIndex, ghost.currentDirection)
                 const directions = ['up', 'down', 'left', 'right']
                 // get legal spaces around it (its previous position is not legal)
-                const legalIndexs = directions.map(direction => {
+                const legalIndexes = directions.map(direction => {
                     return getNextIndex(la, direction)
                 })
-                const filteredIndexes = legalIndexs.filter(index => {
+                const filteredIndexes = legalIndexes.filter(index => {
                     if (index === ghost.currentIndex) {
                         return false
                     } else {
