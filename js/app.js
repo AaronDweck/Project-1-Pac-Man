@@ -318,21 +318,20 @@ function ghostsMoves() {
                 // ! mvp is just to make it move by its self which can be made by choosing first available spot
                 // if length of possible moves is equal to one
                 if (filteredIndexes.length === 1) {
-                    // move to that position
-                    moveCharacter(ghost, la)
                     ghost.currentDirection = getDirection(filteredIndexes[0], la)
-                    checkGhostColision(ghost)
                 } else {
                     // otherwise
                     // look at each available spot and calculate displacment to target cell
                     // return the cell with the shortest displacment
                     // move into space with current direction
                     // set direction to move in the cell with shortest displacment
+                    // if (ghost.frightened){
+                    // }
                     const randomCell = filteredIndexes[Math.floor(Math.random() * filteredIndexes.length)]
-                    moveCharacter(ghost, la)
                     ghost.currentDirection = getDirection(randomCell, la)
-                    checkGhostColision(ghost)
                 }
+                moveCharacter(ghost, la)
+                checkGhostColision(ghost)
             }
         });
 
