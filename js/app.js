@@ -1,18 +1,8 @@
-/*-----------------------HTML---------------------*/
-// * Create a fixed grid which will be used in each round
-
-// the grid will be broken up into 3 parts the score(top), game board(middle) and lives(bottom)
-// the game board will consist of cells with different classes: wall, open, dots and energizers
-// each cell will have an x and y value
-// the characters will move within the grid with classes: pacman(moving and not moving) and ghost(also with each gpsts color)
-// 
-
-/*-----------------------CSS----------------------*/
-
 /*------------------------JS----------------------*/
 
 // ! mvp only need start button
-// * when the page opens the user will have a start button in the center with the background of the board blured out when the user presses start the button and blur will clear out and start the game
+// * when the page opens the user will have a start button in the center with the background 
+// * of the board blured out when the user presses start the button and blur will clear out and start the game
 
 // board setup
 // have a list of the index of each wall or open space 
@@ -417,7 +407,10 @@ function handleHighScore() {
 
 function removeFrightenedMode() {
     console.log('frightened mode over')
-    arrOfGhosts.forEach(ghost => ghost.frightened = false)
+    arrOfGhosts.forEach(ghost => {
+        ghost.frightened = false
+        cells[ghost.currentIndex].classList.remove('frightened')
+    })
     ghostSpeed = 1.1
     clearInterval(ghostInterval)
     ghostMultiplier = 1
