@@ -179,6 +179,8 @@ const beginningSound = document.querySelector('#beginning')
 const eatingSound = document.querySelector('#eating')
 const dyingSound = document.querySelector('#dying')
 const highScoreEL = document.querySelector('#high-score')
+const gameOver = document.querySelector('#game-over')
+
 
 /*------------------------variables----------------------*/
 
@@ -348,25 +350,25 @@ function ghostsMoves() {
 
 }
 
-function rotatePacman(direction) {
-    const pacmanStyle = document.styleSheets[0].cssRules.item(16).style
-    if (direction === 'left') {
-        pacmanStyle.transform = 'rotate(180deg)'
-    } else if (direction === 'right') {
-        pacmanStyle.transform = 'none'
-    } else if (direction === 'up') {
-        pacmanStyle.transform = 'rotate(-90deg)'
-    } else if (direction === 'down') {
-        pacmanStyle.transform = 'rotate(90deg)'
-    }
-}
+// function rotatePacman(direction) {
+//     const pacmanStyle = document.styleSheets[0].cssRules.item(16).style
+//     if (direction === 'left') {
+//         pacmanStyle.transform = 'rotate(180deg)'
+//     } else if (direction === 'right') {
+//         pacmanStyle.transform = 'none'
+//     } else if (direction === 'up') {
+//         pacmanStyle.transform = 'rotate(-90deg)'
+//     } else if (direction === 'down') {
+//         pacmanStyle.transform = 'rotate(90deg)'
+//     }
+// }
 
 function pacmansMoves() {
     pacmanInterval = setInterval(() => {
         const nextPreferredCell = getNextIndex(pacman.currentIndex, pacman.preferredDirection)
         const nextCell = getNextIndex(pacman.currentIndex, pacman.currentDirection)
         if (checkCellLegality(nextPreferredCell)) {
-            rotatePacman(pacman.preferredDirection)
+            // rotatePacman(pacman.preferredDirection)
             moveCharacter(pacman, nextPreferredCell)
             pacman.currentDirection = pacman.preferredDirection
         } else {
@@ -396,7 +398,7 @@ function resetCharacters() {
     moveCharacter(pacman, pacman.startIndex)
     pacman.currentDirection = 'left'
     pacman.preferredDirection = 'left'
-    rotatePacman(pacman.currentDirection)
+    // rotatePacman(pacman.currentDirection)
     arrOfGhosts.forEach(ghost => {
         moveCharacter(ghost, ghost.startIndex)
         ghost.locked = true
@@ -449,7 +451,7 @@ function checkGhostColision(character) {
                     moveCharacter(ghost, 112)
                 } else {
                     // otherwise
-                    rotatePacman('right')
+                    // rotatePacman('right')
                     resetGame()
                     // play dying sound
                     dyingSound.play()
@@ -460,12 +462,15 @@ function checkGhostColision(character) {
                     // if lives are equal to zero
                     if (lives === 0) {
                         // end game and display score
-                        console.log('game ended')
+                        gameOver.classList.add('show')
                         handleHighScore()
                         score = 0
                         lives = 3
                         newGame = true
-                        startButton.classList.remove('hide')
+                        setTimeout(() => {
+                            gameOver.classList.remove('show')
+                            startButton.classList.remove('hide')
+                        }, 3000)
                     } else {
                         setTimeout(() => {
                             startGame()
@@ -502,6 +507,8 @@ function checkCell(character) {
         }
     } else if (cellClassList.contains('power-pellet')) {
         cellClassList.remove('power-pellet')
+        score += 40
+        scoreEl.innerHTML = score
         arrOfGhosts.forEach(ghost => ghost.frightened = true)
         ghostSpeed = 1.6
         clearInterval(ghostInterval)
