@@ -181,7 +181,7 @@ let dotsCollected = 0
 let score = 0
 let pacmanInterval
 let ghostInterval
-let ghostSpeed = 1.1
+let ghostSpeed = 1.2
 let lives = 3
 let ghostMultiplier = 1
 let frightenedTime
@@ -190,8 +190,18 @@ let frightenedTime
 
 highScoreEL.innerHTML = highScore
 
+let y = 1
+let x = 1
+
+
 for (let index = 0; index < numOfCells; index++) {
+
     const cell = document.createElement('div')
+    cell.dataset.x = index % columns + 1
+    cell.dataset.y = y
+    if (index % columns === columns - 1) {
+        y++
+    }
     cell.classList.add('cell')
     // cell.innerHTML = index
     if (indxOfOpenCells.includes(index)) {
@@ -293,6 +303,23 @@ function getDirection(preferredIndex, currentIndex) {
     }
 }
 
+function getShortestDisplacment(arrayOfIdexes) {
+    const pacCellX = cells[pacman.currentIndex].dataset.x
+    const pacCelly = cells[pacman.currentIndex].dataset.y
+
+    const arrOfDisplacment = arrayOfIdexes.map(index => {
+        const gCellX = cells[index].dataset.x
+        const gCellY = cells[index].dataset.y
+        const xDifference = pacCellX - gCellX
+        const yDifference = pacCelly - gCellY
+        const displacment = Math.sqrt(((xDifference) ** 2) + ((yDifference) ** 2)) 
+        return displacment
+    })
+
+    const correctIndex = arrayOfIdexes[arrOfDisplacment.indexOf(Math.min(...arrOfDisplacment))]
+    return correctIndex
+}
+
 function ghostsMoves() {
     // the ghost's moves
     // create an interval with the timing of its speed corresponding to the game speed
@@ -321,15 +348,17 @@ function ghostsMoves() {
                     ghost.currentDirection = getDirection(filteredIndexes[0], la)
                 } else {
                     // otherwise
-                    // look at each available spot and calculate displacment to target cell
-                    // return the cell with the shortest displacment
-                    // move into space with current direction
-                    // set direction to move in the cell with shortest displacment
-                    // if (ghost.frightened){
-                    // }
-                    const randomCell = filteredIndexes[Math.floor(Math.random() * filteredIndexes.length)]
-                    ghost.currentDirection = getDirection(randomCell, la)
+                    if (ghost.frightened) {
+                        const randomCell = filteredIndexes[Math.floor(Math.random() * filteredIndexes.length)]
+                        ghost.currentDirection = getDirection(randomCell, la)
+                    } else {
+                        const preferedCellIndex = getShortestDisplacment(filteredIndexes)
+                        const directionOfIndex = getDirection(preferedCellIndex, la)
+                        // set direction to move in the cell with shortest displacment
+                        ghost.currentDirection = directionOfIndex
+                    }
                 }
+                // move into space with current direction
                 moveCharacter(ghost, la)
                 checkGhostColision(ghost)
             }
@@ -452,7 +481,7 @@ function checkGhostColision(character) {
                     livesSectionEl.removeChild(livesArr[livesArr.length - 1])
                     livesArr.pop()
                     // if lives are equal to zero
-                    if (lives === 0) {
+                    if (lives <= 0) {
                         // end game and display score
                         gameOver.classList.add('show')
                         handleHighScore()
@@ -535,6 +564,7 @@ function unlockGhosts() {
 }
 
 function startGame() {
+    // console.log('lives:',lives)
     startButton.classList.add('hide')
     resetCharacters()
     if (newGame) {
