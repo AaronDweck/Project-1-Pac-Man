@@ -351,12 +351,8 @@ function ghostsMoves() {
                 } else {
                     // otherwise
                     if (ghost.frightened) {
-                        // const randomCell = filteredIndexes[Math.floor(Math.random() * filteredIndexes.length)]
-                        // ghost.currentDirection = getDirection(randomCell, la)
-                        const preferedCellIndex = getShortestDistance(filteredIndexes)
-                        const directionOfIndex = getDirection(preferedCellIndex, la)
-                        // set direction to move in the cell with shortest distance
-                        ghost.currentDirection = directionOfIndex
+                        const randomCell = filteredIndexes[Math.floor(Math.random() * filteredIndexes.length)]
+                        ghost.currentDirection = getDirection(randomCell, la)
                     } else {
                         const preferedCellIndex = getShortestDistance(filteredIndexes)
                         const directionOfIndex = getDirection(preferedCellIndex, la)
@@ -464,7 +460,7 @@ function checkGhostColision(character) {
                     score += 200 * ghostMultiplier
                     ghostMultiplier += 1
                     scoreEl.innerHTML = score
-                    moveCharacter(ghost, 112, 'left')
+                    moveCharacter(ghost, 112,)
                 } else {
                     // otherwise
                     resetGame()
