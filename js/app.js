@@ -38,10 +38,10 @@
 // if length of possible moves is equal to one 
 // move to that position
 // otherwise
-// look at each available spot and calculate displacment to target cell
-// return the cell with the shortest displacment
+// look at each available spot and calculate distance to target cell
+// return the cell with the shortest distance
 // move into space with current direction
-// set direction to move in the cell with shortest displacment
+// set direction to move in the cell with shortest distance
 
 // moving a character
 // get character and direction from parameter
@@ -303,20 +303,20 @@ function getDirection(preferredIndex, currentIndex) {
     }
 }
 
-function getShortestDisplacment(arrayOfIdexes) {
+function getShortestDistance(arrayOfIdexes) {
     const pacCellX = cells[pacman.currentIndex].dataset.x
     const pacCelly = cells[pacman.currentIndex].dataset.y
 
-    const arrOfDisplacment = arrayOfIdexes.map(index => {
+    const arrOfdistance = arrayOfIdexes.map(index => {
         const gCellX = cells[index].dataset.x
         const gCellY = cells[index].dataset.y
         const xDifference = pacCellX - gCellX
         const yDifference = pacCelly - gCellY
-        const displacment = Math.sqrt(((xDifference) ** 2) + ((yDifference) ** 2)) 
-        return displacment
+        const distance = Math.sqrt(((xDifference) ** 2) + ((yDifference) ** 2)) 
+        return distance
     })
 
-    const correctIndex = arrayOfIdexes[arrOfDisplacment.indexOf(Math.min(...arrOfDisplacment))]
+    const correctIndex = arrayOfIdexes[arrOfdistance.indexOf(Math.min(...arrOfdistance))]
     return correctIndex
 }
 
@@ -352,9 +352,9 @@ function ghostsMoves() {
                         const randomCell = filteredIndexes[Math.floor(Math.random() * filteredIndexes.length)]
                         ghost.currentDirection = getDirection(randomCell, la)
                     } else {
-                        const preferedCellIndex = getShortestDisplacment(filteredIndexes)
+                        const preferedCellIndex = getShortestDistance(filteredIndexes)
                         const directionOfIndex = getDirection(preferedCellIndex, la)
-                        // set direction to move in the cell with shortest displacment
+                        // set direction to move in the cell with shortest distance
                         ghost.currentDirection = directionOfIndex
                     }
                 }
