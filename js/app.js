@@ -246,27 +246,29 @@ function checkCellLegality(index) {
 
 }
 
-function moveCharacter(character, index) {
+function moveCharacter(character, index, direction) {
     const ghostsInCell = arrOfGhosts.filter(ghost => {
         return (cells[character.currentIndex].classList.contains(ghost.name) && ghost.frightened)
     })
 
     if (ghostsInCell.length > 1) {
-        cells[character.currentIndex].classList.remove('ghost', character.name)
+        cells[character.currentIndex].classList.remove('ghost', character.name, character.currentDirection)
     } else {
-        cells[character.currentIndex].classList.remove('ghost', 'frightened', character.name)
+        cells[character.currentIndex].classList.remove('ghost', 'frightened', character.name, character.currentDirection)
     }
 
     character.currentIndex = index
 
     if (arrOfGhosts.includes(character)) {
         if (character.frightened) {
-            cells[character.currentIndex].classList.add('ghost', 'frightened', character.name)
+            // console.log('test1')
+            cells[character.currentIndex].classList.add('ghost', 'frightened', character.name, direction)
         } else {
+            // console.log('test2')
             cells[character.currentIndex].classList.add('ghost', character.name)
         }
     } else {
-        cells[character.currentIndex].classList.add(character.name)
+        cells[character.currentIndex].classList.add(character.name, direction)
     }
 }
 
@@ -349,8 +351,12 @@ function ghostsMoves() {
                 } else {
                     // otherwise
                     if (ghost.frightened) {
-                        const randomCell = filteredIndexes[Math.floor(Math.random() * filteredIndexes.length)]
-                        ghost.currentDirection = getDirection(randomCell, la)
+                        // const randomCell = filteredIndexes[Math.floor(Math.random() * filteredIndexes.length)]
+                        // ghost.currentDirection = getDirection(randomCell, la)
+                        const preferedCellIndex = getShortestDistance(filteredIndexes)
+                        const directionOfIndex = getDirection(preferedCellIndex, la)
+                        // set direction to move in the cell with shortest distance
+                        ghost.currentDirection = directionOfIndex
                     } else {
                         const preferedCellIndex = getShortestDistance(filteredIndexes)
                         const directionOfIndex = getDirection(preferedCellIndex, la)
@@ -359,7 +365,7 @@ function ghostsMoves() {
                     }
                 }
                 // move into space with current direction
-                moveCharacter(ghost, la)
+                moveCharacter(ghost, la, )
                 checkGhostColision(ghost)
             }
         });
@@ -368,30 +374,20 @@ function ghostsMoves() {
 
 }
 
-// function rotatePacman(direction) {
-//     const pacmanStyle = document.styleSheets[0].cssRules.item(16).style
-//     if (direction === 'left') {
-//         pacmanStyle.transform = 'rotate(180deg)'
-//     } else if (direction === 'right') {
-//         pacmanStyle.transform = 'none'
-//     } else if (direction === 'up') {
-//         pacmanStyle.transform = 'rotate(-90deg)'
-//     } else if (direction === 'down') {
-//         pacmanStyle.transform = 'rotate(90deg)'
-//     }
-// }
-
 function pacmansMoves() {
     pacmanInterval = setInterval(() => {
         const nextPreferredCell = getNextIndex(pacman.currentIndex, pacman.preferredDirection)
         const nextCell = getNextIndex(pacman.currentIndex, pacman.currentDirection)
         if (checkCellLegality(nextPreferredCell)) {
-            // rotatePacman(pacman.preferredDirection)
-            moveCharacter(pacman, nextPreferredCell)
+            console.log(pacman.preferredDirection)
+            moveCharacter(pacman, nextPreferredCell, pacman.preferredDirection)
             pacman.currentDirection = pacman.preferredDirection
+
         } else {
             if (checkCellLegality(nextCell)) {
-                moveCharacter(pacman, nextCell)
+                console.log(pacman.preferredDirection)
+                console.log(pacman.currentDirection)
+                moveCharacter(pacman, nextCell, pacman.currentDirection)
             }
         }
         checkCell(pacman)
@@ -413,10 +409,9 @@ function pacmanDirecton(event) {
 }
 
 function resetCharacters() {
-    moveCharacter(pacman, pacman.startIndex)
     pacman.currentDirection = 'left'
     pacman.preferredDirection = 'left'
-    // rotatePacman(pacman.currentDirection)
+    moveCharacter(pacman, pacman.startIndex, pacman.currentDirection)
     arrOfGhosts.forEach(ghost => {
         moveCharacter(ghost, ghost.startIndex)
         ghost.locked = true
@@ -469,10 +464,9 @@ function checkGhostColision(character) {
                     score += 200 * ghostMultiplier
                     ghostMultiplier += 1
                     scoreEl.innerHTML = score
-                    moveCharacter(ghost, 112)
+                    moveCharacter(ghost, 112, 'left')
                 } else {
                     // otherwise
-                    // rotatePacman('right')
                     resetGame()
                     // play dying sound
                     dyingSound.play()
@@ -536,7 +530,7 @@ function checkCell(character) {
         ghostsMoves()
         clearTimeout(frightenedTime)
         frightenedTime = setTimeout(() => {
-            removeFrightenedMode()
+            // removeFrightenedMode()
             ghostsMoves()
         }, 8000)
 
