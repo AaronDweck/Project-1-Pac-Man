@@ -530,7 +530,7 @@ function checkCell(character) {
         ghostsMoves()
         clearTimeout(frightenedTime)
         frightenedTime = setTimeout(() => {
-            // removeFrightenedMode()
+            removeFrightenedMode()
             ghostsMoves()
         }, 8000)
 
