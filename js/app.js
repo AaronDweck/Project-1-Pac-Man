@@ -4,7 +4,7 @@ const rows = 19
 const columns = 15
 const numOfCells = rows * columns
 const cells = []
-const indxOfOpenCells = [16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 31, 33, 36, 38, 41, 41, 43, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 61, 63, 65, 69, 71, 73, 76, 78, 80, 81, 82, 83, 84, 86, 88, 91, 93, 97, 101, 103, 106, 107, 108, 110, 111, 112, 113, 114, 116, 117, 118, 123, 125, 129, 131, 135, 136, 137, 138, 139, 140, 144, 145, 146, 147, 148, 149, 153, 155, 156, 157, 158, 159, 161, 166, 167, 168, 169, 175, 176, 177, 178, 181, 184, 185, 186, 187, 188, 189, 190, 193, 196, 197, 199, 205, 207, 208, 212, 214, 215, 216, 218, 219, 220, 222, 226, 227, 228, 229, 231, 232, 233, 235, 236, 237, 238, 241, 247, 253, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268]
+const indxOfOpenCells = [16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 31, 33, 36, 38, 41, 43, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 61, 63, 65, 69, 71, 73, 76, 78, 80, 81, 82, 83, 84, 86, 88, 91, 93, 97, 101, 103, 106, 107, 108, 110, 111, 112, 113, 114, 116, 117, 118, 123, 125, 129, 131, 135, 136, 137, 138, 139, 140, 144, 145, 146, 147, 148, 149, 153, 155, 156, 157, 158, 159, 161, 166, 167, 168, 169, 175, 176, 177, 178, 181, 184, 185, 186, 187, 188, 189, 190, 193, 196, 197, 199, 205, 207, 208, 212, 214, 215, 216, 218, 219, 220, 222, 226, 227, 228, 229, 231, 232, 233, 235, 236, 237, 238, 241, 247, 253, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268]
 const excludePacdot = [31, 43, 110, 111, 112, 113, 114, 125, 129, 135, 136, 137, 139, 140, 144, 145, 147, 148, 149, 155, 156, 157, 158, 159, 187, 196, 208]
 const indexOfPowerPellets = [31, 43, 196, 208]
 const characters = {
@@ -72,7 +72,6 @@ const arrOfGhosts = [redGhost, blueGhost, pinkGhost, orangeGhost]
 const ghostRestartIndex = 112
 const gameSpeed = 300
 const livesArr = []
-const arrOfIntervals = []
 
 /*------------------------cached elements----------------------*/
 
@@ -157,7 +156,11 @@ function addPacdots() {
 }
 
 function checkCellLegality(index) {
-    return !cells[index].classList.contains('wall')
+    return (
+        index >= 0 &&
+        index < cells.length &&
+        !cells[index].classList.contains('wall')
+    )
 
 }
 
@@ -167,20 +170,18 @@ function moveCharacter(character, index, direction) {
     })
 
     if (ghostsInCell.length > 1) {
-        cells[character.currentIndex].classList.remove('ghost', character.name, character.currentDirection)
+        cells[character.currentIndex].classList.remove('ghost', character.name, 'up', 'down', 'left','right')
     } else {
-        cells[character.currentIndex].classList.remove('ghost', 'frightened', character.name, character.currentDirection)
+        cells[character.currentIndex].classList.remove('ghost', 'frightened', character.name, 'up', 'down', 'left','right')
     }
 
     character.currentIndex = index
 
     if (arrOfGhosts.includes(character)) {
         if (character.frightened) {
-            // console.log('test1')
             cells[character.currentIndex].classList.add('ghost', 'frightened', character.name, direction)
         } else {
-            // console.log('test2')
-            cells[character.currentIndex].classList.add('ghost', character.name)
+            cells[character.currentIndex].classList.add('ghost', character.name, direction)
         }
     } else {
         cells[character.currentIndex].classList.add(character.name, direction)
@@ -213,9 +214,9 @@ function getDirection(preferredIndex, currentIndex) {
         return 'down'
     } else if (calc === -columns) {
         return 'up'
-    } else if (calc === 14) {
+    } else if (calc === columns - 1) {
         return 'left'
-    } else if (calc === -14) {
+    } else if (calc === -(columns - 1)) {
         return 'right'
     }
 }
@@ -238,6 +239,7 @@ function getShortestDistance(arrayOfIdexes) {
 }
 
 function ghostsMoves() {
+    clearInterval(ghostInterval)
     // creating an interval with the timing of its speed corresponding to the game speed
     ghostInterval = setInterval(() => {
         arrOfGhosts.forEach(ghost => {
@@ -271,16 +273,16 @@ function ghostsMoves() {
                     }
                 }
                 // move into space with current direction
-                moveCharacter(ghost, la, )
+                moveCharacter(ghost, la, ghost.currentDirection)
                 checkGhostColision(ghost)
             }
         });
 
     }, gameSpeed * ghostSpeed)
-    arrOfIntervals.push(ghostInterval)
 }
 
 function pacmansMoves() {
+    clearInterval(pacmanInterval)
     pacmanInterval = setInterval(() => {
         const nextPreferredCell = getNextIndex(pacman.currentIndex, pacman.preferredDirection)
         const nextCell = getNextIndex(pacman.currentIndex, pacman.currentDirection)
@@ -296,10 +298,9 @@ function pacmansMoves() {
         checkCell(pacman)
 
     }, gameSpeed)
-    arrOfIntervals.push(pacmanInterval)
 }
 
-function pacmanDirecton(event) {
+function pacmanDirection(event) {
     const pressedKey = event.code
     if (pressedKey === 'ArrowUp') {
         pacman.preferredDirection = 'up'
@@ -317,7 +318,7 @@ function resetCharacters() {
     pacman.preferredDirection = 'left'
     moveCharacter(pacman, pacman.startIndex, pacman.currentDirection)
     arrOfGhosts.forEach(ghost => {
-        moveCharacter(ghost, ghost.startIndex)
+        moveCharacter(ghost, ghost.startIndex, ghost.currentDirection)
         ghost.locked = true
         ghost.currentDirection = 'up'
     })
@@ -339,24 +340,15 @@ function removeFrightenedMode() {
         cells[ghost.currentIndex].classList.remove('frightened')
     })
     ghostSpeed = 1.1
-    clearInterval(ghostInterval)
     ghostMultiplier = 1
+    clearInterval(ghostInterval)
 }
 
 function resetGame() {
     eatingSound.pause()
     eatingSound.currentTime = 0
-    // todo fix the interval and timeout timing to attempt bug fix
-    console.log(arrOfIntervals)
-    for (const interval of arrOfIntervals) {
-        console.log('intnum', interval)
-        clearInterval(interval)
-        console.log('intind', arrOfIntervals.indexOf(interval))
-        // arrOfIntervals.splice(arrOfIntervals.indexOf(interval), 1)
-    }
-    console.log(arrOfIntervals)
-    // clearInterval(pacmanInterval)
-    // clearInterval(ghostInterval)
+    clearInterval(pacmanInterval)
+    clearInterval(ghostInterval)
     clearTimeout(frightenedTime)
     removeFrightenedMode()
     arrOfGhosts.forEach(ghost => {
@@ -377,7 +369,7 @@ function checkGhostColision(character) {
                     score += 200 * ghostMultiplier
                     ghostMultiplier += 1
                     scoreEl.innerHTML = score
-                    moveCharacter(ghost, 112,)
+                    moveCharacter(ghost, 112, ghost.currentDirection)
                 } else {
                     // otherwise
                     resetGame()
@@ -463,7 +455,7 @@ function unlockGhosts() {
     for (let index = 0; index < arrOfGhosts.length; index++) {
         const ghost = arrOfGhosts[index];
         ghost.lockedTime = setTimeout(() => {
-            moveCharacter(ghost, 112)
+            moveCharacter(ghost, 112, ghost.currentDirection)
             ghost.locked = false
         }, index * 2500)
 
@@ -471,10 +463,9 @@ function unlockGhosts() {
 }
 
 function startGame() {
-    // console.log('lives:',lives)
-    startButton.classList.add('hide')
     resetCharacters()
     if (newGame) {
+        startButton.classList.add('hide')
         for (let index = 0; index < lives; index++) {
             addLife()
         }
@@ -503,4 +494,4 @@ function startGame() {
 /*------------------------event listeners----------------------*/
 
 startButton.addEventListener('click', startGame)
-document.addEventListener('keydown', pacmanDirecton)
+document.addEventListener('keydown', pacmanDirection)
