@@ -147,7 +147,7 @@ function addPacdots() {
     for (const cell of cells) {
         if (!excludePacdot.includes(cells.indexOf(cell)) && cell.classList.contains('open')) {
             cell.classList.add('pacdot')
-            numOfDots += 1
+            numOfDots++
         } else if (indexOfPowerPellets.includes(cells.indexOf(cell))) {
             cell.classList.add('power-pellet')
         }
@@ -165,23 +165,27 @@ function checkCellLegality(index) {
 }
 
 function moveCharacter(character, index, direction) {
-    const ghostsInCell = arrOfGhosts.filter(ghost => {
-        return (cells[character.currentIndex].classList.contains(ghost.name) && ghost.frightened)
+    const otherGhostInCell = arrOfGhosts.some(ghost => {
+        return ghost !== character && cells[character.currentIndex].classList.contains(ghost.name)
+    })
+    const otherFrightenedGhostInCell = arrOfGhosts.some(ghost => {
+        return ghost !== character && ghost.frightened && cells[character.currentIndex].classList.contains(ghost.name)
     })
 
-    if (ghostsInCell.length > 1) {
-        cells[character.currentIndex].classList.remove('ghost', character.name, 'up', 'down', 'left','right')
-    } else {
-        cells[character.currentIndex].classList.remove('ghost', 'frightened', character.name, 'up', 'down', 'left','right')
+    cells[character.currentIndex].classList.remove(character.name, 'up', 'down', 'left', 'right')
+    if (!otherGhostInCell) {
+        cells[character.currentIndex].classList.remove('ghost')
+    }
+    if (!otherFrightenedGhostInCell) {
+        cells[character.currentIndex].classList.remove('frightened')
     }
 
     character.currentIndex = index
 
     if (arrOfGhosts.includes(character)) {
+        cells[character.currentIndex].classList.add('ghost', character.name, direction)
         if (character.frightened) {
-            cells[character.currentIndex].classList.add('ghost', 'frightened', character.name, direction)
-        } else {
-            cells[character.currentIndex].classList.add('ghost', character.name, direction)
+            cells[character.currentIndex].classList.add('frightened')
         }
     } else {
         cells[character.currentIndex].classList.add(character.name, direction)
@@ -230,7 +234,7 @@ function getShortestDistance(arrayOfIdexes) {
         const gCellY = cells[index].dataset.y
         const xDifference = pacCellX - gCellX
         const yDifference = pacCelly - gCellY
-        const distance = Math.sqrt(((xDifference) ** 2) + ((yDifference) ** 2)) 
+        const distance = Math.sqrt(((xDifference) ** 2) + ((yDifference) ** 2))
         return distance
     })
 
@@ -286,11 +290,13 @@ function pacmansMoves() {
     pacmanInterval = setInterval(() => {
         const nextPreferredCell = getNextIndex(pacman.currentIndex, pacman.preferredDirection)
         const nextCell = getNextIndex(pacman.currentIndex, pacman.currentDirection)
+        // if pacman can move in its preferred direction it will
         if (checkCellLegality(nextPreferredCell)) {
             moveCharacter(pacman, nextPreferredCell, pacman.preferredDirection)
             pacman.currentDirection = pacman.preferredDirection
 
         } else {
+            //otherwise it will continue with its current direction or stop
             if (checkCellLegality(nextCell)) {
                 moveCharacter(pacman, nextCell, pacman.currentDirection)
             }
@@ -339,7 +345,7 @@ function removeFrightenedMode() {
         ghost.frightened = false
         cells[ghost.currentIndex].classList.remove('frightened')
     })
-    ghostSpeed = 1.1
+    ghostSpeed = 1.2
     ghostMultiplier = 1
     clearInterval(ghostInterval)
 }
@@ -420,14 +426,17 @@ function checkCell(character) {
         scoreEl.innerHTML = score
         // if collected dots are equal to the number of dots
         if (dotsCollected === numOfDots) {
+            // todo create wall effect when round ends
             // start new round
             resetGame()
-            addPacdots()
-            startGame()
+            setTimeout(() => {
+                addPacdots()
+                startGame()
+            }, 3000);
         }
     } else if (cellClassList.contains('power-pellet')) {
         cellClassList.remove('power-pellet')
-        score += 40
+        score += 50
         scoreEl.innerHTML = score
         arrOfGhosts.forEach(ghost => ghost.frightened = true)
         ghostSpeed = 1.6
@@ -438,14 +447,11 @@ function checkCell(character) {
             removeFrightenedMode()
             ghostsMoves()
         }, 8000)
-
-
-
     } else {
         eatingSound.pause()
         eatingSound.currentTime = 0
     }
-    // if cell has ghost in it
+    //check if cell has ghost in it
     checkGhostColision(character)
 
 
@@ -466,12 +472,15 @@ function startGame() {
     resetCharacters()
     if (newGame) {
         startButton.classList.add('hide')
+        // setting up the board
+        // adding lives, resetting score and adding pacdots
         for (let index = 0; index < lives; index++) {
             addLife()
         }
         scoreEl.innerHTML = '00'
         newGame = false
         addPacdots()
+        // starting the beginning sound and after 4.5 seconds pacman and the ghost will start moving
         beginningSound.play()
         setTimeout(() => {
             pacmansMoves()
@@ -480,6 +489,7 @@ function startGame() {
         }, 4500)
 
     } else {
+        // if the player finishes a round or dies the game will reset and wait 1.5 seconds before starting the game
         setTimeout(() => {
             pacmansMoves()
             unlockGhosts()
