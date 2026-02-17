@@ -149,6 +149,7 @@ function addPacdots() {
             cell.classList.add('pacdot')
             numOfDots++
         } else if (indexOfPowerPellets.includes(cells.indexOf(cell))) {
+            // todo add power pellets to number of dots needed to clear level
             cell.classList.add('power-pellet')
         }
     }
@@ -332,22 +333,23 @@ function resetCharacters() {
 
 function handleHighScore() {
     if (score > highScore) {
+        // if the player beats the high score, update the local storage, high score variable and the screen with the new score
         localStorage.setItem('p1pacmanHS', score)
         highScore = localStorage.getItem('p1pacmanHS')
+        highScoreEL.innerHTML = highScore
     }
-    highScoreEL.innerHTML = highScore
-
 }
 
 function removeFrightenedMode() {
-    console.log('frightened mode over')
+    // todo add ghost blinking to indicate frightened mode ending
+    // removing the frightened attribute from each ghost
     arrOfGhosts.forEach(ghost => {
         ghost.frightened = false
         cells[ghost.currentIndex].classList.remove('frightened')
     })
+    // reseting the speed and ghost multiplyer
     ghostSpeed = 1.2
     ghostMultiplier = 1
-    clearInterval(ghostInterval)
 }
 
 function resetGame() {
@@ -364,44 +366,54 @@ function resetGame() {
 
 function checkGhostColision(character) {
     const cellClassList = cells[character.currentIndex].classList
+    // if there is a ghost and pacman in the same cell 
     if (cellClassList.contains('ghost') && cellClassList.contains('pacman')) {
-        // check if ghost is frightened if afraid mode is on
+        // check if ghost is frightened
         arrOfGhosts.forEach(ghost => {
             if (cellClassList.contains(ghost.name)) {
                 if (ghost.frightened) {
+                    // if the ghost is frightened, remove frightened atrribute and change direction to up
                     ghost.frightened = false
                     ghost.currentDirection = 'up'
-                    console.log(ghostMultiplier)
-                    score += 200 * ghostMultiplier
-                    ghostMultiplier += 1
+                    // add to the score based on which number of ghost it is e.g 200 400 800 1600
+                    score += ((2 ** ghostMultiplier) * 100)
                     scoreEl.innerHTML = score
+                    // if the player ate 4 ghosts in the same frightened time reset the multiplyer back to 1 otherwise add 1
+                    if (ghostMultiplier == 4) {
+                        ghostMultiplier = 1
+                    } else {
+                        ghostMultiplier += 1
+                    }
+                    // move the ghost back to the start position
                     moveCharacter(ghost, 112, ghost.currentDirection)
                 } else {
-                    // otherwise
+                    // if the ghost isn't frightened, stop the game, play the dying sound and minus 1 from the life
                     resetGame()
-                    // play dying sound
                     dyingSound.play()
-                    // minus one from the life
                     lives--
                     livesSectionEl.removeChild(livesArr[livesArr.length - 1])
                     livesArr.pop()
                     // if lives are equal to zero
                     if (lives <= 0) {
-                        // end game and display score
+                        // show game over sign and check for high score
                         gameOver.classList.add('show')
                         handleHighScore()
+                        // after checking the high score  reset the score, lives and game
                         score = 0
                         lives = 3
                         newGame = true
+                        // after 3 seconds add a button to start again
                         setTimeout(() => {
                             gameOver.classList.remove('show')
                             startButton.classList.remove('hide')
                         }, 3000)
+                        return
                     } else {
+                        // if the lives arent equal to 0 wait 1.5 seconds before starting the game again
                         setTimeout(() => {
                             startGame()
-
                         }, 1500)
+                        return
                     }
                 }
             }
@@ -432,17 +444,23 @@ function checkCell(character) {
             setTimeout(() => {
                 addPacdots()
                 startGame()
-            }, 3000);
+            }, 3000)
+            return
         }
+        // if cell has a power pellet in it
     } else if (cellClassList.contains('power-pellet')) {
+        // remove the pellet and add 50 to the score
         cellClassList.remove('power-pellet')
         score += 50
         scoreEl.innerHTML = score
+        // set the ghost to frightened
         arrOfGhosts.forEach(ghost => ghost.frightened = true)
+        // changing the ghost speed and reseting the ghost timer
         ghostSpeed = 1.6
-        clearInterval(ghostInterval)
         ghostsMoves()
+        // clearing the frightened timout just in case the player ate another pellet in the middle of frightened mode
         clearTimeout(frightenedTime)
+        // creating a timer for 8 seconds before removing frightened mode
         frightenedTime = setTimeout(() => {
             removeFrightenedMode()
             ghostsMoves()
