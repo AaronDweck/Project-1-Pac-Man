@@ -99,6 +99,7 @@ let ghostSpeed = 1.2
 let lives = 3
 let ghostMultiplier = 1
 let frightenedTime
+let isDying = false
 
 /*------------------------game setup----------------------*/
 
@@ -157,12 +158,12 @@ function addPacdots() {
 }
 
 function checkCellLegality(index) {
+    // checking if an index is a wall
     return (
         index >= 0 &&
         index < cells.length &&
         !cells[index].classList.contains('wall')
     )
-
 }
 
 function moveCharacter(character, index, direction) {
@@ -194,6 +195,7 @@ function moveCharacter(character, index, direction) {
 }
 
 function getNextIndex(index, direction) {
+    // creating special index cases if the character is in the tunnel
     if (index === 135 && direction === 'left') {
         return 149
     } else if (index === 149 && direction === 'right') {
@@ -248,16 +250,14 @@ function ghostsMoves() {
     // creating an interval with the timing of its speed corresponding to the game speed
     ghostInterval = setInterval(() => {
         arrOfGhosts.forEach(ghost => {
-            if (ghost.locked) {
-
-            } else {
-                // look at next space with current direction
+            if (!ghost.locked) {
+                // look at next space with current direction and the indexes around it
                 const la = getNextIndex(ghost.currentIndex, ghost.currentDirection)
                 const directions = ['up', 'down', 'left', 'right']
-                // get legal spaces around it (its previous position is not legal)
                 const allIndexes = directions.map(direction => {
                     return getNextIndex(la, direction)
                 })
+                // get the legal indexes (its previous position is not legal)
                 const legalIndexes = allIndexes.filter(index => {
                     if (index === ghost.currentIndex) {
                         return false
@@ -268,6 +268,8 @@ function ghostsMoves() {
                 if (legalIndexes.length === 1) {
                     ghost.currentDirection = getDirection(legalIndexes[0], la)
                 } else {
+                    // if there are more than 1 legal moves
+                    // if the ghost is frightened pick a random move
                     if (ghost.frightened) {
                         const randomCell = legalIndexes[Math.floor(Math.random() * legalIndexes.length)]
                         ghost.currentDirection = getDirection(randomCell, la)
@@ -281,8 +283,7 @@ function ghostsMoves() {
                 moveCharacter(ghost, la, ghost.currentDirection)
                 checkGhostColision(ghost)
             }
-        });
-
+        })
     }, gameSpeed * ghostSpeed)
 }
 
@@ -365,61 +366,56 @@ function resetGame() {
 }
 
 function checkGhostColision(character) {
+    if (isDying) return
     const cellClassList = cells[character.currentIndex].classList
-    // if there is a ghost and pacman in the same cell 
-    if (cellClassList.contains('ghost') && cellClassList.contains('pacman')) {
-        // check if ghost is frightened
-        arrOfGhosts.forEach(ghost => {
-            if (cellClassList.contains(ghost.name)) {
-                if (ghost.frightened) {
-                    // if the ghost is frightened, remove frightened atrribute and change direction to up
-                    ghost.frightened = false
-                    ghost.currentDirection = 'up'
-                    // add to the score based on which number of ghost it is e.g 200 400 800 1600
-                    score += ((2 ** ghostMultiplier) * 100)
-                    scoreEl.innerHTML = score
-                    // if the player ate 4 ghosts in the same frightened time reset the multiplyer back to 1 otherwise add 1
-                    if (ghostMultiplier == 4) {
-                        ghostMultiplier = 1
-                    } else {
-                        ghostMultiplier += 1
-                    }
-                    // move the ghost back to the start position
-                    moveCharacter(ghost, 112, ghost.currentDirection)
-                } else {
-                    // if the ghost isn't frightened, stop the game, play the dying sound and minus 1 from the life
-                    resetGame()
-                    dyingSound.play()
-                    lives--
-                    livesSectionEl.removeChild(livesArr[livesArr.length - 1])
-                    livesArr.pop()
-                    // if lives are equal to zero
-                    if (lives <= 0) {
-                        // show game over sign and check for high score
-                        gameOver.classList.add('show')
-                        handleHighScore()
-                        // after checking the high score  reset the score, lives and game
-                        score = 0
-                        lives = 3
-                        newGame = true
-                        // after 3 seconds add a button to start again
-                        setTimeout(() => {
-                            gameOver.classList.remove('show')
-                            startButton.classList.remove('hide')
-                        }, 3000)
-                        return
-                    } else {
-                        // if the lives arent equal to 0 wait 1.5 seconds before starting the game again
-                        setTimeout(() => {
-                            startGame()
-                        }, 1500)
-                        return
-                    }
-                }
-            }
-        })
+    // if there isn't a ghost and pacman in the same cell, stop here
+    if (!cellClassList.contains('ghost') || !cellClassList.contains('pacman')) return
+    for (const ghost of arrOfGhosts) {
+        if (!cellClassList.contains(ghost.name)) continue
+        if (ghost.frightened) {
+            // if the ghost is frightened, remove frightened atrribute and change direction to up
+            ghost.frightened = false
+            ghost.currentDirection = 'up'
+            // add to the score based on which number of ghost it is e.g 200 400 800 1600
+            score += ((2 ** ghostMultiplier) * 100)
+            scoreEl.innerHTML = score
+            // if the player ate 4 ghosts in the same frightened time reset the multiplyer back to 1 otherwise add 1
+            ghostMultiplier = ghostMultiplier === 4 ? 1 : ghostMultiplier + 1
+            // move the ghost back to the start position
+            moveCharacter(ghost, ghostRestartIndex, ghost.currentDirection)
+            // continue so pacman can eat multiple frightened ghosts in the same cell
+            continue
+        }
+        // if the ghost isn't frightened, stop the game, play the dying sound and minus 1 from the life
+        isDying = true
+        resetGame()
+        dyingSound.play()
+        lives--
+        livesSectionEl.removeChild(livesArr[livesArr.length - 1])
+        livesArr.pop()
 
-
+        // if there aren't any more lives
+        if (lives <= 0) {
+            // show game over sign and check for high score
+            gameOver.classList.add('show')
+            handleHighScore()
+            // after checking the high score reset the score, lives and game
+            score = 0
+            lives = 3
+            newGame = true
+            // after 3 seconds add a button to start again
+            setTimeout(() => {
+                gameOver.classList.remove('show')
+                startButton.classList.remove('hide')
+            }, 3000)
+        } else {
+            // if the lives arent equal to 0 wait 1.7 seconds before starting the game again
+            setTimeout(() => {
+                startGame()
+            }, 1700)
+        }
+        // only lose one life even if multiple non-frightened ghosts are in the same cell
+        return
     }
 }
 
@@ -476,17 +472,17 @@ function checkCell(character) {
 }
 
 function unlockGhosts() {
-    for (let index = 0; index < arrOfGhosts.length; index++) {
-        const ghost = arrOfGhosts[index];
+    // creating a loop so a ghost is released every 2.5 seconds
+    arrOfGhosts.forEach((ghost, index) => {
         ghost.lockedTime = setTimeout(() => {
-            moveCharacter(ghost, 112, ghost.currentDirection)
+            moveCharacter(ghost, ghostRestartIndex, ghost.currentDirection)
             ghost.locked = false
         }, index * 2500)
-
-    }
+    })
 }
 
 function startGame() {
+    isDying = false
     resetCharacters()
     if (newGame) {
         startButton.classList.add('hide')
